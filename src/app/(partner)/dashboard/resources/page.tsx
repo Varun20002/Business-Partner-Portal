@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ExternalLink, Share2, ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon } from "lucide-react";
@@ -51,6 +51,16 @@ export default function ResourcesPage() {
     fetchWebinars();
     fetchMaterials();
   }, []);
+
+  const visibleWebinars = useMemo(
+    () => webinars.slice(0, 12),
+    [webinars]
+  );
+
+  const visibleMaterials = useMemo(
+    () => materials.slice(0, 12),
+    [materials]
+  );
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -113,7 +123,7 @@ export default function ResourcesPage() {
             ref={scrollRef}
             className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
           >
-            {webinars.map((webinar, i) => (
+            {visibleWebinars.map((webinar, i) => (
               <motion.a
                 key={webinar.id}
                 href={webinar.external_link}
@@ -182,7 +192,7 @@ export default function ResourcesPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {materials.map((material, i) => (
+            {visibleMaterials.map((material, i) => (
               <motion.div
                 key={material.id}
                 initial={{ opacity: 0, y: 20 }}

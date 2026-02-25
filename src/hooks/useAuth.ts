@@ -26,21 +26,23 @@ export function useAuth() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        setAuthState({
-          user,
-          profile: profile as Profile | null,
-          isLoading: false,
-        });
-      } else {
+      if (!user) {
         setAuthState({ user: null, profile: null, isLoading: false });
+        return;
       }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        // only fetch fields we actually use in the app
+        .select("id, uid, role")
+        .eq("id", user.id)
+        .single();
+
+      setAuthState({
+        user,
+        profile: (profile as Profile | null) ?? null,
+        isLoading: false,
+      });
     }
 
     getUser();
@@ -51,7 +53,7 @@ export function useAuth() {
       if (session?.user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("*")
+          .select("id, uid, role")
           .eq("id", session.user.id)
           .single();
 

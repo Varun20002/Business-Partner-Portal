@@ -50,7 +50,7 @@ export default function AdminWebinarsPage() {
     const supabase = createClient();
     const { data } = await supabase
       .from("webinars")
-      .select("*")
+      .select("id, title, external_link, created_at")
       .order("created_at", { ascending: false });
     setWebinars((data as Webinar[]) || []);
     setIsLoading(false);

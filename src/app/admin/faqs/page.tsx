@@ -54,7 +54,7 @@ export default function AdminFAQsPage() {
     const supabase = createClient();
     const { data } = await supabase
       .from("faqs")
-      .select("*")
+      .select("id, question, answer, display_order")
       .order("display_order", { ascending: true });
     setFaqs((data as FAQ[]) || []);
     setIsLoading(false);

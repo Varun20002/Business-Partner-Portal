@@ -50,7 +50,7 @@ export default function AdminMaterialsPage() {
     const supabase = createClient();
     const { data } = await supabase
       .from("marketing_materials")
-      .select("*")
+      .select("id, title, image_url, share_text_template, created_at")
       .order("created_at", { ascending: false });
     setMaterials((data as MarketingMaterial[]) || []);
     setIsLoading(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -30,7 +30,13 @@ interface MetricCardProps {
   delay: number;
 }
 
-function MetricCard({ label, value, icon, color, delay }: MetricCardProps) {
+const MetricCard = memo(function MetricCard({
+  label,
+  value,
+  icon,
+  color,
+  delay,
+}: MetricCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -52,7 +58,7 @@ function MetricCard({ label, value, icon, color, delay }: MetricCardProps) {
       </Card>
     </motion.div>
   );
-}
+});
 
 export default function DashboardPage() {
   const { profile } = useAuth();
@@ -86,52 +92,80 @@ export default function DashboardPage() {
 
   const hasMetrics = !!metrics;
 
-  const eligible500Users = metrics?.eligible_500_users ?? 0;
-  const newUsersEarnings =
-    eligible500Users * CALCULATOR.ACQUISITION_BOUNTY;
+  const {
+    eligible500Users,
+    newUsersEarnings,
+    totalVolumeINR,
+    gapINR,
+    primaryMetricsConfig,
+    secondaryMetricsConfig,
+  } = useMemo(() => {
+    if (!metrics) {
+      return {
+        eligible500Users: 0,
+        newUsersEarnings: 0,
+        totalVolumeINR: 0,
+        gapINR: 0,
+        primaryMetricsConfig: [] as MetricCardProps[],
+        secondaryMetricsConfig: [] as MetricCardProps[],
+      };
+    }
 
-  const totalVolumeINR = metrics?.total_volume_inr ?? 0;
-  const { gapINR } = getGapToNextSlab(totalVolumeINR);
+    const eligible = metrics.eligible_500_users ?? 0;
+    const earnings = eligible * CALCULATOR.ACQUISITION_BOUNTY;
+    const totalVolume = metrics.total_volume_inr ?? 0;
+    const { gapINR: gap } = getGapToNextSlab(totalVolume);
 
-  const primaryMetricsConfig = hasMetrics
-    ? [
-        {
-          label: "Users since Feb 1st",
-          value: metrics.total_users,
-          icon: <Users className="w-5 h-5 text-blue-600" />,
-          color: "bg-blue-50",
-        },
-        {
-          label: "Users who traded",
-          value: metrics.traded_users,
-          icon: <TrendingUp className="w-5 h-5 text-emerald-600" />,
-          color: "bg-emerald-50",
-        },
-        {
-          label: "Users crossed 10M volume",
-          value: metrics.eligible_500_users,
-          icon: <Award className="w-5 h-5 text-purple-600" />,
-          color: "bg-purple-50",
-        },
-      ]
-    : [];
+    const primary: MetricCardProps[] = [
+      {
+        label: "Users since Feb 1st",
+        value: metrics.total_users,
+        icon: <Users className="w-5 h-5 text-blue-600" />,
+        color: "bg-blue-50",
+        delay: 0,
+      },
+      {
+        label: "Users who traded",
+        value: metrics.traded_users,
+        icon: <TrendingUp className="w-5 h-5 text-emerald-600" />,
+        color: "bg-emerald-50",
+        delay: 0,
+      },
+      {
+        label: "Users crossed 10M volume",
+        value: metrics.eligible_500_users,
+        icon: <Award className="w-5 h-5 text-purple-600" />,
+        color: "bg-purple-50",
+        delay: 0,
+      },
+    ];
 
-  const secondaryMetricsConfig = hasMetrics
-    ? [
-        {
-          label: "New users earnings (₹)",
-          value: newUsersEarnings,
-          icon: <IndianRupee className="w-5 h-5 text-amber-600" />,
-          color: "bg-amber-50",
-        },
-        {
-          label: "Volume to next slab (₹)",
-          value: gapINR ?? 0,
-          icon: <Target className="w-5 h-5 text-sky-600" />,
-          color: "bg-sky-50",
-        },
-      ]
-    : [];
+    const secondary: MetricCardProps[] = [
+      {
+        label: "New users earnings (₹)",
+        value: earnings,
+        icon: <IndianRupee className="w-5 h-5 text-amber-600" />,
+        color: "bg-amber-50",
+        delay: 0,
+      },
+      {
+        label: "Volume to next slab (₹)",
+        value: gap ?? 0,
+        icon: <Target className="w-5 h-5 text-sky-600" />,
+        color: "bg-sky-50",
+        delay: 0,
+      },
+    ];
+
+    return {
+      eligible500Users: eligible,
+      newUsersEarnings: earnings,
+      totalVolumeINR: totalVolume,
+      gapINR: gap ?? 0,
+      primaryMetricsConfig: primary,
+      secondaryMetricsConfig: secondary,
+    };
+  }, [metrics]);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
