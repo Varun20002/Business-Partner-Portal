@@ -8,7 +8,7 @@ This document describes the required format for Google Sheets data that will be 
 
 ### Required Columns
 
-Your Google Sheet must have the following core columns (in any order):
+Your Google Sheet must have the following **core identity and user metrics** columns (in any order):
 
 | Column Name | Description | Example | Required |
 |------------|-------------|---------|----------|
@@ -16,22 +16,46 @@ Your Google Sheet must have the following core columns (in any order):
 | **Total Users** | Total number of users | `1250` | ✅ Yes |
 | **Traded Users** | Number of users who have traded | `450` | ✅ Yes |
 | **Eligible 500 Users** | Number of users eligible for ₹500 bonus | `120` | ✅ Yes |
-| **Volume Eligible Users** | Number of users eligible for volume-based rewards | `280` | ✅ Yes |
+
+These are the minimum fields needed to identify the partner and drive the **New user incentive** card on the dashboard.
+
+### Canonical headings for dashboard earnings metrics
+
+To fully power the dashboard tiles you care about:
+
+- **New users earnings (₹)**
+- **Users since Feb 1st**
+- **Users who traded**
+- **Users crossed 1M volume**
+- **Volume incentive (₹)**
+- **Current baseline volume (₹)**
+- **Incremental volume (₹)**
+- **Volume required for next slab (₹)**
+
+you can simply use the **dashboard labels themselves as Google Sheet headers**. These are the recommended, trimmed names:
+
+| Dashboard label | Recommended Google Sheet header | Notes |
+|-----------------|---------------------------------|-------|
+| New users earnings (₹) | **New users earnings (₹)** | Also accepts the older `New User incetive (500 X Crossed 1M INR )` |
+| Users since Feb 1st | **Users since Feb 1st** | Also accepts `Total Users` / `TotalUsers` / `Total` |
+| Users who traded | **Users who traded** | Also accepts `Traded Users` / `TradedUsers` / `Traded` / `Who traded` |
+| Users crossed 1M volume | **Users crossed 1M volume** | Also accepts `Crossed Threshold(1000000 INR)` / `Crossed Threshold` / `Crossed 1M` |
+| Volume incentive (₹) | **Volume incentive (₹)** | Also accepts `Volume Based incentive (Based on Incremental Volume)` / `Volume Incentive` |
+| Current baseline volume (₹) | **Current baseline volume (₹)** | Also accepts `Current Baseline` / `Current Baseline Volume` |
+| Incremental volume (₹) | **Incremental volume (₹)** | Also accepts `Incremental Volume` |
+| Volume required for next slab (₹) | **Volume required for next slab (₹)** | Also accepts `Volume Required for next Slab` / `Volume Required for next slab` |
+
+As long as either the **trimmed name** or one of its accepted variations is present, the data will flow correctly from Google Sheets → Supabase → your dashboard.
 
 ### Optional Columns (for richer dashboard breakdown)
 
-These columns are optional but recommended if you want the full “Performance Breakdown” section on the partner dashboard:
+These columns are optional but recommended if you want extra flexibility or future metrics beyond the current dashboard tiles:
 
 | Column Name | Description | Example |
 |------------|-------------|---------|
+| **Volume Eligible Users** | Number of users eligible for volume-based rewards | `280` |
 | **Total Volume (INR)** | Aggregate trading volume in INR for all referred users | `50000000` |
 | **New User** | Number of newly acquired users in the period | `150` |
-| **Crossed Threshold(1000000 INR)** | Users whose volume crossed the 1,000,000 INR threshold | `35` |
-| **New User incetive (500 X Crossed 1M INR )** | Total fixed incentives for threshold crossings | `17500` |
-| **Current Baseline** | Current baseline eligible volume in INR | `50000000` |
-| **Incremental Volume** | Volume above the baseline in INR | `12000000` |
-| **Volume Based incentive (Based on Incremental Volume)** | Incentive for the incremental volume | `240000` |
-| **Volume Required for next Slab** | Additional volume required to reach the next slab | `8000000` |
 | **Volume Based Incentive if they reach that Slab** | Incentive if the next slab is reached | `400000` |
 
 ### Accepted Column Name Variations

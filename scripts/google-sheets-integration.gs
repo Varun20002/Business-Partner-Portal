@@ -44,28 +44,45 @@ function importMetricsToSupabase() {
     const headers = headerRange.getValues()[0].map(h => String(h).trim());
     
     // 3. Find column indices
+    //
+    // Canonical Google Sheets headers that directly back the dashboard tiles:
+    // - Partner UID                      → partner_uid
+    // - Total Users                      → total_users
+    // - Traded Users                     → traded_users
+    // - Eligible 500 Users               → eligible_500_users
+    // - Crossed Threshold(1000000 INR)   → crossed_threshold_users
+    // - New User incetive (500 X Crossed 1M INR ) → new_user_incentive_inr
+    // - Current Baseline                 → current_baseline_volume_inr
+    // - Incremental Volume               → incremental_volume_inr
+    // - Volume Based incentive (Based on Incremental Volume) → volume_incentive_inr
+    // - Volume Required for next Slab    → volume_to_next_slab_inr
+    // - Volume Based Incentive if they reach that Slab → next_slab_incentive_inr
+    //
+    // We still support a few flexible aliases for backwards compatibility.
     const colMap = {
       partner_uid: findColumnIndex(headers, ['Partner UID', 'PartnerUID', 'UID']),
-      total_users: findColumnIndex(headers, ['Total Users', 'TotalUsers', 'Total']),
-      traded_users: findColumnIndex(headers, ['Traded Users', 'TradedUsers', 'Traded', 'Who traded', 'Who Traded']),
+      total_users: findColumnIndex(headers, ['Total Users', 'TotalUsers', 'Total', 'Users since Feb 1st']),
+      traded_users: findColumnIndex(headers, ['Traded Users', 'TradedUsers', 'Traded', 'Who traded', 'Who Traded', 'Users who traded']),
       eligible_500_users: findColumnIndex(headers, ['Eligible 500 Users', 'Eligible500', 'Eligible 500']),
       volume_eligible_users: findColumnIndex(headers, ['Volume Eligible Users', 'VolumeEligible', 'Volume Eligible']),
       total_volume_inr: findColumnIndex(headers, ['Total Volume (INR)', 'Total Volume', 'Volume INR']),
       new_users: findColumnIndex(headers, ['New User', 'New Users', 'NewUsers']),
-      crossed_threshold_users: findColumnIndex(headers, ['Crossed Threshold(1000000 INR)', 'Crossed Threshold', 'Crossed 1M']),
-      new_user_incentive_inr: findColumnIndex(headers, ['New User incetive (500 X Crossed 1M INR )', 'New User incentive', 'New User Incentive']),
-      current_baseline_volume_inr: findColumnIndex(headers, ['Current Baseline', 'Current Baseline Volume']),
-      incremental_volume_inr: findColumnIndex(headers, ['Incremental Volume']),
-      volume_incentive_inr: findColumnIndex(headers, ['Volume Based incentive (Based on Incremental Volume)', 'Volume Based incentive', 'Volume Incentive']),
-      volume_to_next_slab_inr: findColumnIndex(headers, ['Volume Required for next Slab', 'Volume Required for next slab']),
+      crossed_threshold_users: findColumnIndex(headers, ['Crossed Threshold(1000000 INR)', 'Crossed Threshold', 'Crossed 1M', 'Users crossed 1M volume']),
+      new_user_incentive_inr: findColumnIndex(headers, ['New User incetive (500 X Crossed 1M INR )', 'New User incentive', 'New User Incentive', 'New users earnings (₹)']),
+      current_baseline_volume_inr: findColumnIndex(headers, ['Current Baseline', 'Current Baseline Volume', 'Current baseline volume (₹)']),
+      incremental_volume_inr: findColumnIndex(headers, ['Incremental Volume', 'Incremental volume (₹)']),
+      volume_incentive_inr: findColumnIndex(headers, ['Volume Based incentive (Based on Incremental Volume)', 'Volume Based incentive', 'Volume Incentive', 'Volume incentive (₹)']),
+      volume_to_next_slab_inr: findColumnIndex(headers, ['Volume Required for next Slab', 'Volume Required for next slab', 'Volume required for next slab (₹)']),
       next_slab_incentive_inr: findColumnIndex(headers, ['Volume Based Incentive if they reach that Slab', 'Next Slab Incentive'])
     };
 
-    // Validate all columns found
+    // Validate that all core columns needed for the dashboard are present.
     const missingCols = Object.entries(colMap)
       .filter(([name, idx]) => {
-        // Only the core columns are strictly required
-        const required = ['partner_uid', 'total_users', 'traded_users', 'eligible_500_users', 'volume_eligible_users'];
+        // Only the identity + primary user counts are strictly required.
+        // "Users crossed 1M volume" can now be provided via a single column,
+        // and we derive older fields (Eligible 500 Users, Volume Eligible Users) from it when missing.
+        const required = ['partner_uid', 'total_users', 'traded_users'];
         return required.indexOf(name) !== -1 && idx === -1;
       })
       .map(([name]) => name);
@@ -92,36 +109,56 @@ function importMetricsToSupabase() {
       }
 
       // Parse row data
+      const partnerUid = String(rowData[colMap.partner_uid]).trim().toUpperCase();
+      const totalUsers = parseNumber(rowData[colMap.total_users], row, 'Total Users / Users since Feb 1st');
+      const tradedUsers = parseNumber(rowData[colMap.traded_users], row, 'Traded Users / Users who traded');
+
+      // Single source of truth for \"users crossed 1M volume\".
+      const crossedThresholdUsers = colMap.crossed_threshold_users === -1
+        ? 0
+        : parseNumber(
+            rowData[colMap.crossed_threshold_users],
+            row,
+            'Crossed Threshold(1000000 INR) / Users crossed 1M volume'
+          );
+
+      // For backwards compatibility, derive legacy fields when their columns are missing.
+      const eligible500Users = colMap.eligible_500_users === -1
+        ? crossedThresholdUsers
+        : parseNumber(rowData[colMap.eligible_500_users], row, 'Eligible 500 Users');
+
+      const volumeEligibleUsers = colMap.volume_eligible_users === -1
+        ? crossedThresholdUsers
+        : parseNumber(rowData[colMap.volume_eligible_users], row, 'Volume Eligible Users');
+
       const metric = {
-        partner_uid: String(rowData[colMap.partner_uid]).trim().toUpperCase(),
-        total_users: parseNumber(rowData[colMap.total_users], row, 'Total Users'),
-        traded_users: parseNumber(rowData[colMap.traded_users], row, 'Traded Users'),
-        eligible_500_users: parseNumber(rowData[colMap.eligible_500_users], row, 'Eligible 500 Users'),
-        volume_eligible_users: parseNumber(rowData[colMap.volume_eligible_users], row, 'Volume Eligible Users'),
+        partner_uid: partnerUid,
+        total_users: totalUsers,
+        traded_users: tradedUsers,
+        eligible_500_users: eligible500Users,
+        volume_eligible_users: volumeEligibleUsers,
         total_volume_inr: colMap.total_volume_inr === -1
           ? 0
           : parseNumber(rowData[colMap.total_volume_inr], row, 'Total Volume (INR)'),
         new_users: colMap.new_users === -1
           ? 0
           : parseNumber(rowData[colMap.new_users], row, 'New User'),
-        crossed_threshold_users: colMap.crossed_threshold_users === -1
-          ? 0
-          : parseNumber(rowData[colMap.crossed_threshold_users], row, 'Crossed Threshold'),
+        crossed_threshold_users: crossedThresholdUsers,
         new_user_incentive_inr: colMap.new_user_incentive_inr === -1
           ? 0
-          : parseNumber(rowData[colMap.new_user_incentive_inr], row, 'New User incentive'),
+          : parseNumber(rowData[colMap.new_user_incentive_inr], row, 'New users earnings (₹) / New User incentive'),
         current_baseline_volume_inr: colMap.current_baseline_volume_inr === -1
           ? 0
-          : parseNumber(rowData[colMap.current_baseline_volume_inr], row, 'Current Baseline'),
+          : parseNumber(rowData[colMap.current_baseline_volume_inr], row, 'Current baseline volume (₹) / Current Baseline'),
         incremental_volume_inr: colMap.incremental_volume_inr === -1
           ? 0
-          : parseNumber(rowData[colMap.incremental_volume_inr], row, 'Incremental Volume'),
+          : parseNumber(rowData[colMap.incremental_volume_inr], row, 'Incremental volume (₹) / Incremental Volume'),
         volume_incentive_inr: colMap.volume_incentive_inr === -1
           ? 0
-          : parseNumber(rowData[colMap.volume_incentive_inr], row, 'Volume Based incentive'),
+          : parseNumber(rowData[colMap.volume_incentive_inr], row, 'Volume incentive (₹) / Volume Based incentive'),
         volume_to_next_slab_inr: colMap.volume_to_next_slab_inr === -1
           ? 0
-          : parseNumber(rowData[colMap.volume_to_next_slab_inr], row, 'Volume Required for next Slab'),
+          : parseNumber(rowData[colMap.volume_to_next_slab_inr], row, 'Volume required for next slab (₹) / Volume Required for next Slab'),
         next_slab_incentive_inr: colMap.next_slab_incentive_inr === -1
           ? 0
           : parseNumber(rowData[colMap.next_slab_incentive_inr], row, 'Next Slab Incentive')
@@ -203,13 +240,30 @@ function sendToAPI(metrics) {
   };
 
   const response = UrlFetchApp.fetch(API_URL, options);
-  const responseCode = response.getResponseCode();
-  const responseText = response.getContentText();
+const responseCode = response.getResponseCode();
+const responseText = response.getContentText();
 
-  if (responseCode !== 200) {
-    const errorData = JSON.parse(responseText);
-    throw new Error(`API Error (${responseCode}): ${errorData.error || responseText}`);
+if (responseCode !== 200) {
+  let errorData;
+  try {
+    errorData = JSON.parse(responseText);
+  } catch (e) {
+    errorData = null;
   }
+
+  // Log full response for debugging
+  Logger.log('API response code: ' + responseCode);
+  Logger.log('API raw response: ' + responseText);
+  if (errorData) {
+    Logger.log('API error object: ' + JSON.stringify(errorData));
+  }
+
+  const msg = errorData && errorData.error
+    ? `API Error (${responseCode}): ${errorData.error} (code=${errorData.code || 'n/a'}, details=${errorData.details || 'n/a'})`
+    : `API Error (${responseCode}): ${responseText}`;
+
+  throw new Error(msg);
+}
 
   return JSON.parse(responseText);
 }

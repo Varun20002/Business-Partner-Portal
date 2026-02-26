@@ -233,12 +233,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. Return success response
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       message: `Successfully imported ${results.length} metrics`,
       imported_count: results.length,
       metrics: results,
-    });
+    };
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     // Handle validation errors
     if (error instanceof Error && error.name === "ZodError") {
