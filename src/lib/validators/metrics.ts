@@ -26,6 +26,54 @@ export const MetricsRowSchema = z.object({
     .min(0, "Total volume (INR) must be a non-negative integer")
     .optional()
     .default(0),
+  new_users: z
+    .number()
+    .int()
+    .min(0, "New users must be a non-negative integer")
+    .optional()
+    .default(0),
+  crossed_threshold_users: z
+    .number()
+    .int()
+    .min(0, "Crossed threshold users must be a non-negative integer")
+    .optional()
+    .default(0),
+  new_user_incentive_inr: z
+    .number()
+    .int()
+    .min(0, "New user incentive must be a non-negative integer")
+    .optional()
+    .default(0),
+  current_baseline_volume_inr: z
+    .number()
+    .int()
+    .min(0, "Current baseline volume must be a non-negative integer")
+    .optional()
+    .default(0),
+  incremental_volume_inr: z
+    .number()
+    .int()
+    .min(0, "Incremental volume must be a non-negative integer")
+    .optional()
+    .default(0),
+  volume_incentive_inr: z
+    .number()
+    .int()
+    .min(0, "Volume incentive must be a non-negative integer")
+    .optional()
+    .default(0),
+  volume_to_next_slab_inr: z
+    .number()
+    .int()
+    .min(0, "Volume to next slab must be a non-negative integer")
+    .optional()
+    .default(0),
+  next_slab_incentive_inr: z
+    .number()
+    .int()
+    .min(0, "Next slab incentive must be a non-negative integer")
+    .optional()
+    .default(0),
 });
 
 export const MetricsImportSchema = z.object({

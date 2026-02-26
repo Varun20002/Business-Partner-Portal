@@ -8,7 +8,7 @@ This document describes the required format for Google Sheets data that will be 
 
 ### Required Columns
 
-Your Google Sheet must have the following columns (in any order):
+Your Google Sheet must have the following core columns (in any order):
 
 | Column Name | Description | Example | Required |
 |------------|-------------|---------|----------|
@@ -17,7 +17,22 @@ Your Google Sheet must have the following columns (in any order):
 | **Traded Users** | Number of users who have traded | `450` | ✅ Yes |
 | **Eligible 500 Users** | Number of users eligible for ₹500 bonus | `120` | ✅ Yes |
 | **Volume Eligible Users** | Number of users eligible for volume-based rewards | `280` | ✅ Yes |
-| **Total Volume (INR)** | Aggregate trading volume in INR for all referred users | `50000000` | ⚪ Optional (recommended) |
+
+### Optional Columns (for richer dashboard breakdown)
+
+These columns are optional but recommended if you want the full “Performance Breakdown” section on the partner dashboard:
+
+| Column Name | Description | Example |
+|------------|-------------|---------|
+| **Total Volume (INR)** | Aggregate trading volume in INR for all referred users | `50000000` |
+| **New User** | Number of newly acquired users in the period | `150` |
+| **Crossed Threshold(1000000 INR)** | Users whose volume crossed the 1,000,000 INR threshold | `35` |
+| **New User incetive (500 X Crossed 1M INR )** | Total fixed incentives for threshold crossings | `17500` |
+| **Current Baseline** | Current baseline eligible volume in INR | `50000000` |
+| **Incremental Volume** | Volume above the baseline in INR | `12000000` |
+| **Volume Based incentive (Based on Incremental Volume)** | Incentive for the incremental volume | `240000` |
+| **Volume Required for next Slab** | Additional volume required to reach the next slab | `8000000` |
+| **Volume Based Incentive if they reach that Slab** | Incentive if the next slab is reached | `400000` |
 
 ### Accepted Column Name Variations
 
@@ -25,10 +40,18 @@ The script is flexible and accepts these variations:
 
 - **Partner UID**: `Partner UID`, `PartnerUID`, `UID`
 - **Total Users**: `Total Users`, `TotalUsers`, `Total`
-- **Traded Users**: `Traded Users`, `TradedUsers`, `Traded`
+- **Traded Users**: `Traded Users`, `TradedUsers`, `Traded`, `Who traded`, `Who Traded`
 - **Eligible 500 Users**: `Eligible 500 Users`, `Eligible500`, `Eligible 500`
 - **Volume Eligible Users**: `Volume Eligible Users`, `VolumeEligible`, `Volume Eligible`
 - **Total Volume (INR)**: `Total Volume (INR)`, `Total Volume`, `Volume INR`
+- **New User**: `New User`, `New Users`, `NewUsers`
+- **Crossed Threshold(1000000 INR)**: `Crossed Threshold(1000000 INR)`, `Crossed Threshold`, `Crossed 1M`
+- **New User incetive (500 X Crossed 1M INR )**: `New User incetive (500 X Crossed 1M INR )`, `New User incentive`, `New User Incentive`
+- **Current Baseline**: `Current Baseline`, `Current Baseline Volume`
+- **Incremental Volume**: `Incremental Volume`
+- **Volume Based incentive (Based on Incremental Volume)**: `Volume Based incentive (Based on Incremental Volume)`, `Volume Based incentive`, `Volume Incentive`
+- **Volume Required for next Slab**: `Volume Required for next Slab`, `Volume Required for next slab`
+- **Volume Based Incentive if they reach that Slab**: `Volume Based Incentive if they reach that Slab`, `Next Slab Incentive`
 
 ## Example Sheet
 

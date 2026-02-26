@@ -239,6 +239,7 @@ export default function ResourcesPage() {
           materialTitle={shareModal.material.title}
           shareTextTemplate={shareModal.material.share_text_template}
           uid={profile.uid}
+          imageUrl={shareModal.material.image_url}
         />
       )}
     </div>

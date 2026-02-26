@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, MessageCircle, Share2 } from "lucide-react";
+import Image from "next/image";
+import { Check, Copy, MessageCircle, Share2, ExternalLink } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { DISCLAIMER } from "@/lib/constants";
 import { generateRefLink } from "@/lib/utils";
 
 interface ShareModalProps {
@@ -13,6 +13,7 @@ interface ShareModalProps {
   materialTitle: string;
   shareTextTemplate: string;
   uid: string;
+  imageUrl: string;
 }
 
 export function ShareModal({
@@ -21,6 +22,7 @@ export function ShareModal({
   materialTitle,
   shareTextTemplate,
   uid,
+  imageUrl,
 }: ShareModalProps) {
   const [verified, setVerified] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -42,6 +44,37 @@ export function ShareModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Share: ${materialTitle}`}>
       <div className="space-y-5">
+        {/* Preview */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 font-body">
+            Preview asset
+          </label>
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-gray-50">
+            <div className="relative h-48">
+              <Image
+                src={imageUrl}
+                alt={materialTitle}
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+            </div>
+            <div className="flex items-center justify-between px-3 py-2 bg-white/80">
+              <p className="text-xs text-gray-500 font-body line-clamp-1">
+                {materialTitle}
+              </p>
+              <button
+                type="button"
+                onClick={() => window.open(imageUrl, "_blank")}
+                className="inline-flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Open full size
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Referral Link */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 font-body">
@@ -63,13 +96,6 @@ export function ShareModal({
               )}
             </button>
           </div>
-        </div>
-
-        {/* Disclaimer */}
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-          <p className="text-xs text-amber-800 font-body leading-relaxed">
-            <strong>Disclaimer:</strong> {DISCLAIMER}
-          </p>
         </div>
 
         {/* Verification Checkbox */}

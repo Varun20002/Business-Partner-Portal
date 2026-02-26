@@ -17,7 +17,15 @@ export interface PartnerMetrics {
   traded_users: number;
   eligible_500_users: number;
   volume_eligible_users: number;
-   total_volume_inr: number;
+  total_volume_inr: number;
+  new_users: number;
+  crossed_threshold_users: number;
+  new_user_incentive_inr: number;
+  current_baseline_volume_inr: number;
+  incremental_volume_inr: number;
+  volume_incentive_inr: number;
+  volume_to_next_slab_inr: number;
+  next_slab_incentive_inr: number;
   updated_at: string;
 }
 
@@ -74,6 +82,14 @@ export interface Database {
           eligible_500_users?: number;
           volume_eligible_users?: number;
           total_volume_inr?: number;
+          new_users?: number;
+          crossed_threshold_users?: number;
+          new_user_incentive_inr?: number;
+          current_baseline_volume_inr?: number;
+          incremental_volume_inr?: number;
+          volume_incentive_inr?: number;
+          volume_to_next_slab_inr?: number;
+          next_slab_incentive_inr?: number;
           updated_at?: string;
         };
         Update: {
@@ -84,6 +100,14 @@ export interface Database {
           eligible_500_users?: number;
           volume_eligible_users?: number;
           total_volume_inr?: number;
+          new_users?: number;
+          crossed_threshold_users?: number;
+          new_user_incentive_inr?: number;
+          current_baseline_volume_inr?: number;
+          incremental_volume_inr?: number;
+          volume_incentive_inr?: number;
+          volume_to_next_slab_inr?: number;
+          next_slab_incentive_inr?: number;
           updated_at?: string;
         };
       };

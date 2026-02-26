@@ -47,15 +47,27 @@ function importMetricsToSupabase() {
     const colMap = {
       partner_uid: findColumnIndex(headers, ['Partner UID', 'PartnerUID', 'UID']),
       total_users: findColumnIndex(headers, ['Total Users', 'TotalUsers', 'Total']),
-      traded_users: findColumnIndex(headers, ['Traded Users', 'TradedUsers', 'Traded']),
+      traded_users: findColumnIndex(headers, ['Traded Users', 'TradedUsers', 'Traded', 'Who traded', 'Who Traded']),
       eligible_500_users: findColumnIndex(headers, ['Eligible 500 Users', 'Eligible500', 'Eligible 500']),
       volume_eligible_users: findColumnIndex(headers, ['Volume Eligible Users', 'VolumeEligible', 'Volume Eligible']),
-      total_volume_inr: findColumnIndex(headers, ['Total Volume (INR)', 'Total Volume', 'Volume INR'])
+      total_volume_inr: findColumnIndex(headers, ['Total Volume (INR)', 'Total Volume', 'Volume INR']),
+      new_users: findColumnIndex(headers, ['New User', 'New Users', 'NewUsers']),
+      crossed_threshold_users: findColumnIndex(headers, ['Crossed Threshold(1000000 INR)', 'Crossed Threshold', 'Crossed 1M']),
+      new_user_incentive_inr: findColumnIndex(headers, ['New User incetive (500 X Crossed 1M INR )', 'New User incentive', 'New User Incentive']),
+      current_baseline_volume_inr: findColumnIndex(headers, ['Current Baseline', 'Current Baseline Volume']),
+      incremental_volume_inr: findColumnIndex(headers, ['Incremental Volume']),
+      volume_incentive_inr: findColumnIndex(headers, ['Volume Based incentive (Based on Incremental Volume)', 'Volume Based incentive', 'Volume Incentive']),
+      volume_to_next_slab_inr: findColumnIndex(headers, ['Volume Required for next Slab', 'Volume Required for next slab']),
+      next_slab_incentive_inr: findColumnIndex(headers, ['Volume Based Incentive if they reach that Slab', 'Next Slab Incentive'])
     };
 
     // Validate all columns found
     const missingCols = Object.entries(colMap)
-      .filter(([name, idx]) => idx === -1 && name !== 'total_volume_inr')
+      .filter(([name, idx]) => {
+        // Only the core columns are strictly required
+        const required = ['partner_uid', 'total_users', 'traded_users', 'eligible_500_users', 'volume_eligible_users'];
+        return required.indexOf(name) !== -1 && idx === -1;
+      })
       .map(([name]) => name);
     
     if (missingCols.length > 0) {
@@ -88,7 +100,31 @@ function importMetricsToSupabase() {
         volume_eligible_users: parseNumber(rowData[colMap.volume_eligible_users], row, 'Volume Eligible Users'),
         total_volume_inr: colMap.total_volume_inr === -1
           ? 0
-          : parseNumber(rowData[colMap.total_volume_inr], row, 'Total Volume (INR)')
+          : parseNumber(rowData[colMap.total_volume_inr], row, 'Total Volume (INR)'),
+        new_users: colMap.new_users === -1
+          ? 0
+          : parseNumber(rowData[colMap.new_users], row, 'New User'),
+        crossed_threshold_users: colMap.crossed_threshold_users === -1
+          ? 0
+          : parseNumber(rowData[colMap.crossed_threshold_users], row, 'Crossed Threshold'),
+        new_user_incentive_inr: colMap.new_user_incentive_inr === -1
+          ? 0
+          : parseNumber(rowData[colMap.new_user_incentive_inr], row, 'New User incentive'),
+        current_baseline_volume_inr: colMap.current_baseline_volume_inr === -1
+          ? 0
+          : parseNumber(rowData[colMap.current_baseline_volume_inr], row, 'Current Baseline'),
+        incremental_volume_inr: colMap.incremental_volume_inr === -1
+          ? 0
+          : parseNumber(rowData[colMap.incremental_volume_inr], row, 'Incremental Volume'),
+        volume_incentive_inr: colMap.volume_incentive_inr === -1
+          ? 0
+          : parseNumber(rowData[colMap.volume_incentive_inr], row, 'Volume Based incentive'),
+        volume_to_next_slab_inr: colMap.volume_to_next_slab_inr === -1
+          ? 0
+          : parseNumber(rowData[colMap.volume_to_next_slab_inr], row, 'Volume Required for next Slab'),
+        next_slab_incentive_inr: colMap.next_slab_incentive_inr === -1
+          ? 0
+          : parseNumber(rowData[colMap.next_slab_incentive_inr], row, 'Next Slab Incentive')
       };
 
       metrics.push(metric);

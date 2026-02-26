@@ -129,6 +129,14 @@ export async function POST(request: NextRequest) {
       eligible_500_users: m.eligible_500_users,
       volume_eligible_users: m.volume_eligible_users,
       total_volume_inr: m.total_volume_inr ?? 0,
+      new_users: m.new_users ?? 0,
+      crossed_threshold_users: m.crossed_threshold_users ?? 0,
+      new_user_incentive_inr: m.new_user_incentive_inr ?? 0,
+      current_baseline_volume_inr: m.current_baseline_volume_inr ?? 0,
+      incremental_volume_inr: m.incremental_volume_inr ?? 0,
+      volume_incentive_inr: m.volume_incentive_inr ?? 0,
+      volume_to_next_slab_inr: m.volume_to_next_slab_inr ?? 0,
+      next_slab_incentive_inr: m.next_slab_incentive_inr ?? 0,
     }));
 
     const results: any[] = [];
@@ -166,6 +174,15 @@ export async function POST(request: NextRequest) {
             eligible_500_users: metric.eligible_500_users,
             volume_eligible_users: metric.volume_eligible_users,
             total_volume_inr: metric.total_volume_inr ?? 0,
+            new_users: metric.new_users ?? 0,
+            crossed_threshold_users: metric.crossed_threshold_users ?? 0,
+            new_user_incentive_inr: metric.new_user_incentive_inr ?? 0,
+            current_baseline_volume_inr:
+              metric.current_baseline_volume_inr ?? 0,
+            incremental_volume_inr: metric.incremental_volume_inr ?? 0,
+            volume_incentive_inr: metric.volume_incentive_inr ?? 0,
+            volume_to_next_slab_inr: metric.volume_to_next_slab_inr ?? 0,
+            next_slab_incentive_inr: metric.next_slab_incentive_inr ?? 0,
             updated_at: new Date().toISOString(),
           })
           .eq("partner_uid", metric.partner_uid)
