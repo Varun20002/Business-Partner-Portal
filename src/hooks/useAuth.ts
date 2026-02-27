@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
-import type { User } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthState {
   user: User | null;
@@ -21,51 +21,51 @@ export function useAuth() {
   useEffect(() => {
     const supabase = createClient();
 
-    async function getUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setAuthState({ user: null, profile: null, isLoading: false });
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        // only fetch fields we actually use in the app
-        .select("id, uid, role")
-        .eq("id", user.id)
-        .single();
-
-      setAuthState({
-        user,
-        profile: (profile as Profile | null) ?? null,
-        isLoading: false,
-      });
-    }
-
-    getUser();
-
+    // Listen for auth state changes - fires INITIAL_SESSION immediately on page load
+    // This is faster than getSession() which has internal locking issues
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, uid, role")
-          .eq("id", session.user.id)
-          .single();
-
-        setAuthState({
-          user: session.user,
-          profile: profile as Profile | null,
-          isLoading: false,
-        });
-      } else {
-        setAuthState({ user: null, profile: null, isLoading: false });
+    } = supabase.auth.onAuthStateChange(
+      async (_event: string, session: Session | null) => {
+        if (session?.user) {
+          // Query profile with a timeout to prevent hanging
+          const profilePromise = supabase
+            .from("profiles")
+            .select("id, uid, role")
+            .eq("id", session.user.id)
+            .single();
+          
+          const timeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => 
+            setTimeout(() => reject(new Error("Profile timeout")), 3000)
+          );
+          
+          try {
+            const result = await Promise.race([profilePromise, timeoutPromise]) as any;
+            const { data: profile, error: profileError } = result;
+            
+            if (!profileError && profile) {
+              setAuthState({
+                user: session.user,
+                profile: profile as Profile,
+                isLoading: false,
+              });
+            } else {
+              setAuthState({
+                user: session.user,
+                profile: null,
+                isLoading: false,
+              });
+            }
+          } catch {
+            setAuthState({
+              user: session.user,
+              profile: null,
+              isLoading: false,
+            });
+          }
+        }
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
   }, []);
