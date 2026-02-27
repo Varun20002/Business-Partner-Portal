@@ -1,7 +1,7 @@
 // ─── Brand Configuration ───────────────────────────────────────
 export const BRAND = {
-  name: "CoinDCX",
-  tagline: "Business Partner Portal",
+  name: "Business Partner Portal",
+  tagline: "Partner Dashboard",
   terminology: "Crypto Assets", // NEVER use "Cryptocurrency"
   terminologyFull: "Virtual Digital Assets (VDA)",
 } as const;
@@ -40,7 +40,6 @@ export const DISCLAIMER =
 export const PARTNER_NAV = [
   { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
   { label: "Resources", href: "/dashboard/resources", icon: "BookOpen" },
-  { label: "FAQs", href: "/dashboard/faqs", icon: "HelpCircle" },
 ] as const;
 
 export const ADMIN_NAV = [

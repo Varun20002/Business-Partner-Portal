@@ -22,7 +22,8 @@ export function useWebinars() {
   return useQuery({
     queryKey: ["webinars"],
     queryFn: fetchWebinars,
-    initialData: [],
+    placeholderData: [],
+    staleTime: 0, // Admin can add webinars anytime; always refetch when partner visits
   });
 }
 

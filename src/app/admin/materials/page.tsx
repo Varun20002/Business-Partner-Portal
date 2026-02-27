@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +26,7 @@ const materialSchema = z.object({
 type MaterialForm = z.infer<typeof materialSchema>;
 
 export default function AdminMaterialsPage() {
+  const queryClient = useQueryClient();
   const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -92,6 +94,7 @@ export default function AdminMaterialsPage() {
     setModalOpen(false);
     setIsSubmitting(false);
     fetchMaterials();
+    queryClient.invalidateQueries({ queryKey: ["marketing-materials"] });
   };
 
   const handleDelete = async () => {
@@ -100,6 +103,7 @@ export default function AdminMaterialsPage() {
     await supabase.from("marketing_materials").delete().eq("id", deleteId);
     setDeleteId(null);
     fetchMaterials();
+    queryClient.invalidateQueries({ queryKey: ["marketing-materials"] });
   };
 
   return (

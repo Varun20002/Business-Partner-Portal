@@ -22,7 +22,8 @@ export function useFaqs() {
   return useQuery({
     queryKey: ["faqs"],
     queryFn: fetchFaqs,
-    initialData: [],
+    placeholderData: [],
+    staleTime: 0, // Admin can add FAQs anytime; always refetch when partner visits
   });
 }
 

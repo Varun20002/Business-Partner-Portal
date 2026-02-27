@@ -3,7 +3,14 @@
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ExternalLink, Share2, ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon } from "lucide-react";
+import {
+  ExternalLink,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Image as ImageIcon,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -51,7 +58,7 @@ export default function ResourcesPage() {
   return (
     <div className="space-y-10 max-w-7xl mx-auto">
       {/* ─── Zone 1: This Week's Happenings (Webinars) ─── */}
-      <section>
+      <section id="shareable-assets">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">
@@ -110,12 +117,12 @@ export default function ResourcesPage() {
                 transition={{ delay: i * 0.1 }}
                 className="flex-shrink-0 w-72 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
               >
-                <div className="relative h-40 overflow-hidden">
+                <div className="relative h-40 overflow-hidden bg-black">
                   <Image
                     src={webinar.poster_url}
                     alt={webinar.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-contain group-hover:scale-105 transition-transform duration-500"
                     sizes="288px"
                   />
                   <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg">
@@ -176,12 +183,12 @@ export default function ResourcesPage() {
                 transition={{ delay: i * 0.05 }}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-48 overflow-hidden bg-black">
                   <Image
                     src={material.image_url}
                     alt={material.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="object-contain group-hover:scale-105 transition-transform duration-500"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 </div>

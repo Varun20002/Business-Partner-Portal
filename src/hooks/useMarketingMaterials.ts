@@ -22,7 +22,8 @@ export function useMarketingMaterials() {
   return useQuery({
     queryKey: ["marketing-materials"],
     queryFn: fetchMarketingMaterials,
-    initialData: [],
+    placeholderData: [],
+    staleTime: 0, // Admin can add materials anytime; always refetch when partner visits
   });
 }
 

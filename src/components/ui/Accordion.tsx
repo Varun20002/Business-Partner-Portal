@@ -17,9 +17,11 @@ function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProp
     <div className="border border-gray-100 rounded-2xl bg-white shadow-sm overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50/50 transition-colors"
+        className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50/70 transition-colors"
       >
-        <span className="font-heading font-medium text-gray-900 pr-4">{question}</span>
+        <span className="font-heading font-semibold text-gray-900 pr-4 leading-snug">
+          {question}
+        </span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
@@ -37,7 +39,7 @@ function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProp
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             <div className="px-6 pb-5 text-gray-600 font-body leading-relaxed border-t border-gray-50">
-              <div className="pt-4">{answer}</div>
+              <div className="pt-4 whitespace-pre-line">{answer}</div>
             </div>
           </motion.div>
         )}
@@ -55,7 +57,7 @@ export function Accordion({ items, className }: AccordionProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-4", className)}>
       {items.map((item) => (
         <AccordionItem
           key={item.id}

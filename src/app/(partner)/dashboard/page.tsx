@@ -3,19 +3,15 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import {
-  Users,
-  TrendingUp,
-  BarChart3,
-  Clock,
-  Info,
-} from "lucide-react";
+import { Users, TrendingUp, BarChart3, Clock, Info, HelpCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { MetricCardSkeleton } from "@/components/ui/Skeleton";
+import { Accordion } from "@/components/ui/Accordion";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRelativeTime, formatNumber } from "@/lib/utils";
 import { usePartnerMetrics } from "@/hooks/usePartnerMetrics";
+import { useFaqs } from "@/hooks/useFaqs";
 
 const LazyPartnerIncentiveCalculator = dynamic(
   () =>
@@ -62,14 +58,21 @@ function BreakdownItem({ label, value, helper }: BreakdownItemProps) {
 }
 
 export default function DashboardPage() {
-  const { profile } = useAuth();
+  const { profile, isLoading: isAuthLoading } = useAuth();
+  const uid = profile?.uid;
   const {
     data: metrics,
-    isLoading,
-  } = usePartnerMetrics(profile?.uid);
+    isLoading: isMetricsLoading,
+    isError,
+    error,
+  } = usePartnerMetrics(uid);
 
   const hasMetrics = !!metrics;
-  const hasNoData = !isLoading && !hasMetrics;
+  const waitingForProfile = !uid && isAuthLoading;
+  const hasNoData =
+    uid && !isMetricsLoading && !hasMetrics && !isError;
+
+  const { data: faqs = [], isLoading: isFaqsLoading } = useFaqs();
 
   const {
     newUserSection,
@@ -172,113 +175,180 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Metrics */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <MetricCardSkeleton key={i} />
-          ))}
-        </div>
+      {waitingForProfile || isMetricsLoading ? (
+        <MetricCardSkeleton />
+      ) : isError ? (
+        <Card>
+          <EmptyState
+            icon={<BarChart3 className="w-8 h-8" />}
+            title="Could not load metrics"
+            description={
+              error instanceof Error
+                ? error.message
+                : "Check your connection and try again."
+            }
+          />
+        </Card>
       ) : hasNoData ? (
         <Card>
           <EmptyState
             icon={<BarChart3 className="w-8 h-8" />}
             title="Your dashboard is being prepared"
-            description="Check back soon. Your metrics will appear here once data is available."
+            description={
+              profile?.uid
+                ? `Your UID: ${profile.uid}. Ensure this matches the Partner UID in your Google Sheet, then re-import.`
+                : "Check back soon. Your metrics will appear here once data is available."
+            }
           />
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* New user incentive card */}
-          <Card className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-                  <Users className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="text-base font-heading font-semibold text-gray-900">
-                    New user incentive
-                  </h2>
-                  <p className="text-xs text-gray-500 font-body">
-                    How your new users are performing in this period.
-                  </p>
-                </div>
+        <Card className="flex flex-col gap-5">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary">
+              <BarChart3 className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-heading font-semibold text-gray-900">
+                Partner metrics
+              </h2>
+              <p className="text-xs text-gray-500 font-body">
+                New user and volume incentive breakdown
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* New user section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Users className="w-4 h-4 text-blue-600" />
+                New user incentive
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <BreakdownItem
+                  label="New users earnings (₹)"
+                  value={newUserSection.newUserIncentiveInr}
+                  helper="Estimated earnings from threshold-based incentives"
+                />
+                <BreakdownItem
+                  label="Users since Feb 1st"
+                  value={newUserSection.usersSinceStart}
+                  helper="Total new users mapped to your UID"
+                />
+                <BreakdownItem
+                  label="Users who traded"
+                  value={newUserSection.usersTraded}
+                  helper="New users who have placed at least one trade"
+                />
+                <BreakdownItem
+                  label="Users crossed 1M volume"
+                  value={newUserSection.usersCrossedThreshold}
+                  helper="New users above 1M volume threshold"
+                />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BreakdownItem
-                label="New users earnings (₹)"
-                value={newUserSection.newUserIncentiveInr}
-                helper="Estimated earnings from threshold-based incentives"
-              />
-              <BreakdownItem
-                label="Users since Feb 1st"
-                value={newUserSection.usersSinceStart}
-                helper="Total new users mapped to your UID"
-              />
-              <BreakdownItem
-                label="Users who traded"
-                value={newUserSection.usersTraded}
-                helper="New users who have placed at least one trade"
-              />
-              <BreakdownItem
-                label="Users crossed 1M volume"
-                value={newUserSection.usersCrossedThreshold}
-                helper="New users above 1M volume threshold"
-              />
-            </div>
-          </Card>
-
-          {/* Volume based incentive card */}
-          <Card className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="text-base font-heading font-semibold text-gray-900">
-                    Volume based incentive
-                  </h2>
-                  <p className="text-xs text-gray-500 font-body">
-                    Your baseline, incremental volume and projected slab
-                    earnings.
-                  </p>
-                </div>
+            {/* Volume section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                Volume based incentive
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <BreakdownItem
+                  label="Volume incentive (₹)"
+                  value={volumeSection.volumeIncentiveInr}
+                  helper="Estimated earnings linked to incremental volume"
+                />
+                <BreakdownItem
+                  label="Current baseline volume (₹)"
+                  value={volumeSection.baselineVolumeInr}
+                  helper="Baseline eligible volume in this program"
+                />
+                <BreakdownItem
+                  label="Incremental volume (₹)"
+                  value={volumeSection.incrementalVolumeInr}
+                  helper="Volume above the baseline for this period"
+                />
+                <BreakdownItem
+                  label="Volume required for next slab (₹)"
+                  value={volumeSection.volumeToNextSlabInr}
+                  helper={`Additional volume required to reach the next slab to earn ₹${formatNumber(
+                    volumeSection.nextSlabIncentiveInr
+                  )}`}
+                />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <BreakdownItem
-                label="Volume incentive (₹)"
-                value={volumeSection.volumeIncentiveInr}
-                helper="Estimated earnings linked to incremental volume"
-              />
-              <BreakdownItem
-                label="Current baseline volume (₹)"
-                value={volumeSection.baselineVolumeInr}
-                helper="Baseline eligible volume in this program"
-              />
-              <BreakdownItem
-                label="Incremental volume (₹)"
-                value={volumeSection.incrementalVolumeInr}
-                helper="Volume above the baseline for this period"
-              />
-              <BreakdownItem
-                label="Volume required for next slab (₹)"
-                value={volumeSection.volumeToNextSlabInr}
-                helper={`Additional volume required to reach the next slab to earn ₹${formatNumber(
-                  volumeSection.nextSlabIncentiveInr
-                )}`}
-              />
-            </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
       )}
 
       {/* Calculator */}
       <div>
         <LazyPartnerIncentiveCalculator />
       </div>
+
+      {/* FAQ Section — placed after calculator per UX best practices */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+        className="space-y-6"
+        aria-labelledby="faq-heading"
+      >
+        <Card className="p-0 overflow-hidden">
+          <div className="px-6 pt-6 pb-5 border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/40">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h2
+                  id="faq-heading"
+                  className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2"
+                >
+                  <HelpCircle className="w-5 h-5 text-brand-primary" />
+                  Frequently Asked Questions
+                </h2>
+                <p className="text-sm text-gray-500 font-body">
+                  DNAP Incentive Program key questions and answers.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-6">
+            {isFaqsLoading ? (
+              <div className="space-y-3 max-w-3xl">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-16 rounded-2xl bg-gray-100 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : faqs.length === 0 ? (
+              <EmptyState
+                icon={<HelpCircle className="w-8 h-8" />}
+                title="No FAQs available"
+                description="Common questions will appear here soon."
+              />
+            ) : (
+              <div className="max-w-3xl">
+                <Accordion
+                  items={faqs.map((faq) => ({
+                    id: faq.id,
+                    question: faq.question,
+                    answer: faq.answer,
+                  }))}
+                  className="space-y-4"
+                />
+                <div className="mt-6 pt-5 border-t border-gray-100">
+                  <p className="text-sm text-gray-500 font-body">
+                    Still have questions? Please reach out to your CoinDCX
+                    partner manager.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      </motion.section>
     </div>
   );
 }

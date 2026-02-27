@@ -57,11 +57,11 @@ export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps)
       >
         {/* Brand Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-heading font-bold text-sm">C</span>
-            </div>
-            <span className="font-heading font-bold text-gray-900">
+          <Link href="/dashboard" className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-semibold tracking-[0.18em] text-gray-400 uppercase">
+              {BRAND.tagline}
+            </span>
+            <span className="font-heading font-bold text-gray-900 text-lg leading-tight">
               {BRAND.name}
             </span>
           </Link>
@@ -87,7 +87,7 @@ export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps)
                 onFocus={() => router.prefetch(item.href)}
                 onClick={onMobileClose}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative",
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden",
                   active
                     ? "text-brand-primary bg-blue-50"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -96,7 +96,7 @@ export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps)
                 {active && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-primary rounded-r-full"
+                    className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary rounded-r-full"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}

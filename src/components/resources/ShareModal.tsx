@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Check, Copy, MessageCircle, Share2, ExternalLink } from "lucide-react";
+import {
+  Check,
+  Copy,
+  MessageCircle,
+  Share2,
+  ExternalLink,
+  Instagram,
+  Facebook,
+} from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { generateRefLink } from "@/lib/utils";
@@ -39,7 +47,18 @@ export function ShareModal({
   };
 
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+    refLink
+  )}&quote=${encodeURIComponent(shareText)}`;
+
+  const handleInstagramShare = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+    } catch {
+      // ignore clipboard errors; still open Instagram
+    }
+    window.open("https://www.instagram.com/", "_blank");
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Share: ${materialTitle}`}>
@@ -50,12 +69,12 @@ export function ShareModal({
             Preview asset
           </label>
           <div className="rounded-2xl border border-gray-200 overflow-hidden bg-gray-50">
-            <div className="relative h-48">
+            <div className="relative h-48 bg-black">
               <Image
                 src={imageUrl}
                 alt={materialTitle}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="100vw"
               />
             </div>
@@ -123,7 +142,7 @@ export function ShareModal({
         </label>
 
         {/* Social Share Buttons */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <Button
             variant="primary"
             size="md"
@@ -138,11 +157,21 @@ export function ShareModal({
             variant="primary"
             size="md"
             disabled={!verified}
-            className="flex-1 gap-2 bg-black hover:bg-gray-800"
-            onClick={() => window.open(twitterUrl, "_blank")}
+            className="flex-1 gap-2 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 hover:from-pink-600 hover:via-red-600 hover:to-yellow-600"
+            onClick={handleInstagramShare}
           >
-            <Share2 className="w-4 h-4" />
-            X (Twitter)
+            <Instagram className="w-4 h-4" />
+            Instagram
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            disabled={!verified}
+            className="flex-1 gap-2 bg-[#1877F2] hover:bg-[#1458b8]"
+            onClick={() => window.open(facebookUrl, "_blank")}
+          >
+            <Facebook className="w-4 h-4" />
+            Facebook
           </Button>
         </div>
       </div>
