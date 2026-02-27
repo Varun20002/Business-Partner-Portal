@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ExternalLink, Share2, ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -12,45 +11,22 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { WebinarCardSkeleton, MaterialCardSkeleton } from "@/components/ui/Skeleton";
 import { ShareModal } from "@/components/resources/ShareModal";
 import type { Webinar, MarketingMaterial } from "@/types/database";
-import { useRef } from "react";
+import { useWebinars } from "@/hooks/useWebinars";
+import { useMarketingMaterials } from "@/hooks/useMarketingMaterials";
 
 export default function ResourcesPage() {
   const { profile } = useAuth();
-  const [webinars, setWebinars] = useState<Webinar[]>([]);
-  const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
-  const [isLoadingWebinars, setIsLoadingWebinars] = useState(true);
-  const [isLoadingMaterials, setIsLoadingMaterials] = useState(true);
+  const { data: webinars = [], isLoading: isLoadingWebinars } = useWebinars();
+  const {
+    data: materials = [],
+    isLoading: isLoadingMaterials,
+  } = useMarketingMaterials();
   const [shareModal, setShareModal] = useState<{
     isOpen: boolean;
     material: MarketingMaterial | null;
   }>({ isOpen: false, material: null });
 
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    async function fetchWebinars() {
-      const { data } = await supabase
-        .from("webinars")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setWebinars((data as Webinar[]) || []);
-      setIsLoadingWebinars(false);
-    }
-
-    async function fetchMaterials() {
-      const { data } = await supabase
-        .from("marketing_materials")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setMaterials((data as MarketingMaterial[]) || []);
-      setIsLoadingMaterials(false);
-    }
-
-    fetchWebinars();
-    fetchMaterials();
-  }, []);
 
   const visibleWebinars = useMemo(
     () => webinars.slice(0, 12),

@@ -1,33 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { Accordion } from "@/components/ui/Accordion";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { FAQ } from "@/types/database";
+import { useFaqs } from "@/hooks/useFaqs";
 
 export default function FAQsPage() {
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchFAQs() {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("faqs")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      setFaqs((data as FAQ[]) || []);
-      setIsLoading(false);
-    }
-
-    fetchFAQs();
-  }, []);
+  const [faqsOverride, setFaqsOverride] = useState<FAQ[] | null>(null);
+  const { data: faqsData = [], isLoading } = useFaqs();
+  const faqs: FAQ[] = faqsOverride ?? faqsData;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

@@ -98,7 +98,11 @@ export async function POST(request: NextRequest) {
     if (profileError) {
       console.error("[Import Metrics] Error checking profiles:", profileError);
       return NextResponse.json(
-        { error: "Failed to validate partner UIDs" },
+        {
+          error: "Failed to validate partner UIDs",
+          details: profileError.message,
+          code: profileError.code,
+        },
         { status: 500 }
       );
     }
@@ -122,21 +126,24 @@ export async function POST(request: NextRequest) {
 
     // 6. Upsert-style behavior without relying on DB constraints:
     //    For each partner_uid, update if a row exists, otherwise insert.
+    //    Coerce all numerics to safe integers to avoid DB/PostgREST issues.
+    const toInt = (v: unknown, d: number) =>
+      typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : d;
     const normalizedMetrics: MetricsRow[] = metrics.map((m) => ({
       partner_uid: m.partner_uid.toUpperCase(),
-      total_users: m.total_users,
-      traded_users: m.traded_users,
-      eligible_500_users: m.eligible_500_users,
-      volume_eligible_users: m.volume_eligible_users,
-      total_volume_inr: m.total_volume_inr ?? 0,
-      new_users: m.new_users ?? 0,
-      crossed_threshold_users: m.crossed_threshold_users ?? 0,
-      new_user_incentive_inr: m.new_user_incentive_inr ?? 0,
-      current_baseline_volume_inr: m.current_baseline_volume_inr ?? 0,
-      incremental_volume_inr: m.incremental_volume_inr ?? 0,
-      volume_incentive_inr: m.volume_incentive_inr ?? 0,
-      volume_to_next_slab_inr: m.volume_to_next_slab_inr ?? 0,
-      next_slab_incentive_inr: m.next_slab_incentive_inr ?? 0,
+      total_users: toInt(m.total_users, 0),
+      traded_users: toInt(m.traded_users, 0),
+      eligible_500_users: toInt(m.eligible_500_users, 0),
+      volume_eligible_users: toInt(m.volume_eligible_users, 0),
+      total_volume_inr: toInt(m.total_volume_inr, 0),
+      new_users: toInt(m.new_users, 0),
+      crossed_threshold_users: toInt(m.crossed_threshold_users, 0),
+      new_user_incentive_inr: toInt(m.new_user_incentive_inr, 0),
+      current_baseline_volume_inr: toInt(m.current_baseline_volume_inr, 0),
+      incremental_volume_inr: toInt(m.incremental_volume_inr, 0),
+      volume_incentive_inr: toInt(m.volume_incentive_inr, 0),
+      volume_to_next_slab_inr: toInt(m.volume_to_next_slab_inr, 0),
+      next_slab_incentive_inr: toInt(m.next_slab_incentive_inr, 0),
     }));
 
     const results: any[] = [];

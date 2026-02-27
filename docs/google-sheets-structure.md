@@ -8,16 +8,15 @@ This document describes the required format for Google Sheets data that will be 
 
 ### Required Columns
 
-Your Google Sheet must have the following **core identity and user metrics** columns (in any order):
+Your Google Sheet must have the following **three core columns** (in any order). All other columns are optional and will default to 0 or be derived (e.g. "Users crossed 1M volume" fills Eligible 500 / Volume Eligible when those columns are missing).
 
 | Column Name | Description | Example | Required |
 |------------|-------------|---------|----------|
-| **Partner UID** | Partner unique identifier (2 letters + numbers) | `VA51243378` | ✅ Yes |
-| **Total Users** | Total number of users | `1250` | ✅ Yes |
-| **Traded Users** | Number of users who have traded | `450` | ✅ Yes |
-| **Eligible 500 Users** | Number of users eligible for ₹500 bonus | `120` | ✅ Yes |
+| **Partner UID** | Partner unique identifier (2 letters + numbers) | `VA51243378` | Yes |
+| **Total Users** or **Users since Feb 1st** | Total number of users | `1250` | Yes |
+| **Traded Users** or **Users who traded** | Number of users who have traded | `450` | Yes |
 
-These are the minimum fields needed to identify the partner and drive the **New user incentive** card on the dashboard.
+Only these three are strictly required. The script will accept the trimmed dashboard-style headers (e.g. "Users since Feb 1st", "Users who traded") or the longer names.
 
 ### Canonical headings for dashboard earnings metrics
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import {
   Users,
   TrendingUp,
@@ -9,14 +10,27 @@ import {
   Clock,
   Info,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { MetricCardSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { PartnerIncentiveCalculator } from "@/components/calculator/PartnerIncentiveCalculator";
 import { getRelativeTime, formatNumber } from "@/lib/utils";
-import type { PartnerMetrics } from "@/types/database";
+import { usePartnerMetrics } from "@/hooks/usePartnerMetrics";
+
+const LazyPartnerIncentiveCalculator = dynamic(
+  () =>
+    import("@/components/calculator/PartnerIncentiveCalculator").then(
+      (m) => m.PartnerIncentiveCalculator
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mt-4">
+        <div className="h-40 rounded-2xl bg-white border border-gray-100 shadow-sm animate-pulse" />
+      </div>
+    ),
+  }
+);
 
 interface BreakdownItemProps {
   label: string;
@@ -49,35 +63,13 @@ function BreakdownItem({ label, value, helper }: BreakdownItemProps) {
 
 export default function DashboardPage() {
   const { profile } = useAuth();
-  const [metrics, setMetrics] = useState<PartnerMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasNoData, setHasNoData] = useState(false);
-
-  useEffect(() => {
-    async function fetchMetrics() {
-      if (!profile?.uid) return;
-
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("partner_metrics")
-        .select("*")
-        .eq("partner_uid", profile.uid)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (error || !data) {
-        setHasNoData(true);
-      } else {
-        setMetrics(data as PartnerMetrics);
-      }
-      setIsLoading(false);
-    }
-
-    fetchMetrics();
-  }, [profile?.uid]);
+  const {
+    data: metrics,
+    isLoading,
+  } = usePartnerMetrics(profile?.uid);
 
   const hasMetrics = !!metrics;
+  const hasNoData = !isLoading && !hasMetrics;
 
   const {
     newUserSection,
@@ -285,7 +277,7 @@ export default function DashboardPage() {
 
       {/* Calculator */}
       <div>
-        <PartnerIncentiveCalculator />
+        <LazyPartnerIncentiveCalculator />
       </div>
     </div>
   );
