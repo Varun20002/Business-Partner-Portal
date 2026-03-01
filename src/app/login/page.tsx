@@ -39,6 +39,9 @@ export default function LoginPage() {
 
       const supabase = createClient();
 
+      // Clear any existing session to avoid conflicts
+      await supabase.auth.signOut();
+
       // Format email: {uid}@partner.coindcx.internal
       const email = `${uid.trim().toLowerCase()}@partner.coindcx.internal`;
 
