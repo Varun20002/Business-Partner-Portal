@@ -94,13 +94,15 @@ export default function ResourcesPage() {
             ))}
           </div>
         ) : webinars.length === 0 ? (
-          <Card>
-            <EmptyState
-              icon={<Sparkles className="w-8 h-8" />}
-              title="No happenings yet"
-              description="Check back soon for upcoming webinars and events."
-            />
-          </Card>
+          <div className="rounded-2xl bg-gradient-to-r from-brand-primary/5 via-brand-primary/10 to-brand-primary/5 border border-brand-primary/10 p-8 text-center">
+            <Sparkles className="w-10 h-10 text-brand-primary mx-auto mb-3" />
+            <h3 className="text-lg font-heading font-semibold text-gray-900 mb-1">
+              No happenings yet
+            </h3>
+            <p className="text-sm text-gray-600 font-body">
+              Check back soon for upcoming webinars and events.
+            </p>
+          </div>
         ) : (
           <div
             ref={scrollRef}
