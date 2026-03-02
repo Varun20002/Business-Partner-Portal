@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Users, TrendingUp, BarChart3, Clock, Info, HelpCircle } from "lucide-react";
+import { Users, TrendingUp, BarChart3, Clock, Info, HelpCircle, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
 import { MetricCardSkeleton } from "@/components/ui/Skeleton";
@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { getRelativeTime, formatNumber } from "@/lib/utils";
 import { usePartnerMetrics } from "@/hooks/usePartnerMetrics";
 import { useFaqs } from "@/hooks/useFaqs";
+import Link from "next/link";
 
 const LazyPartnerIncentiveCalculator = dynamic(
   () =>
@@ -285,6 +286,35 @@ export default function DashboardPage() {
       <div>
         <LazyPartnerIncentiveCalculator />
       </div>
+
+      {/* Refer Now CTA - Clean Horizontal Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+        className="w-full"
+      >
+        <Link
+          href="/dashboard/resources#shareable-assets"
+          className="group flex items-center justify-center gap-3 rounded-2xl bg-brand-primary px-8 py-4 text-white shadow-lg shadow-brand-primary/25 hover:bg-brand-primary/90 hover:shadow-xl hover:shadow-brand-primary/30 transition-all duration-300"
+        >
+          <Share2 className="w-5 h-5" />
+          <span className="text-base font-heading font-semibold">Refer Now</span>
+          <svg
+            className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </Link>
+      </motion.div>
 
       {/* FAQ Section — placed after calculator per UX best practices */}
       <motion.section
