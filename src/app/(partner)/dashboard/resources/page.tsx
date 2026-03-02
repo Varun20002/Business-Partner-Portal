@@ -88,20 +88,18 @@ export default function ResourcesPage() {
         </div>
 
         {isLoadingWebinars ? (
-          <div className="flex gap-4 overflow-hidden">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <WebinarCardSkeleton key={i} />
-            ))}
-          </div>
+          <WebinarCardSkeleton />
         ) : webinars.length === 0 ? (
-          <div className="rounded-2xl bg-gradient-to-r from-brand-primary/5 via-brand-primary/10 to-brand-primary/5 border border-brand-primary/10 p-8 text-center">
-            <Sparkles className="w-10 h-10 text-brand-primary mx-auto mb-3" />
-            <h3 className="text-lg font-heading font-semibold text-gray-900 mb-1">
-              No happenings yet
-            </h3>
-            <p className="text-sm text-gray-600 font-body">
-              Check back soon for upcoming webinars and events.
-            </p>
+          <div className="w-full h-72 rounded-2xl bg-gradient-to-r from-brand-primary/5 via-brand-primary/10 to-brand-primary/5 border border-brand-primary/10 flex items-center justify-center">
+            <div className="text-center">
+              <Sparkles className="w-10 h-10 text-brand-primary mx-auto mb-3" />
+              <h3 className="text-lg font-heading font-semibold text-gray-900 mb-1">
+                No happenings yet
+              </h3>
+              <p className="text-sm text-gray-600 font-body">
+                Check back soon for upcoming webinars and events.
+              </p>
+            </div>
           </div>
         ) : (
           <div
@@ -117,31 +115,25 @@ export default function ResourcesPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="flex-shrink-0 w-72 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
+                className="flex-shrink-0 w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer"
               >
-                <div className="relative h-40 overflow-hidden bg-black">
+                <div className="relative h-[360px] w-full bg-gray-50 flex items-center justify-center">
                   <Image
                     src={webinar.poster_url}
                     alt={webinar.title}
                     fill
-                    className="object-contain group-hover:scale-105 transition-transform duration-500"
-                    sizes="288px"
+                    className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                    sizes="100vw"
                   />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg">
-                    <ExternalLink className="w-3.5 h-3.5 text-gray-600" />
-                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-heading font-semibold text-gray-900 text-sm line-clamp-2">
+                <div className="p-5 border-t border-gray-100 flex items-center justify-between gap-4">
+                  <h3 className="font-heading font-semibold text-gray-900 text-lg line-clamp-2 flex-1">
                     {webinar.title}
                   </h3>
-                  <p className="text-xs text-gray-400 font-body mt-2">
-                    {new Date(webinar.created_at).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
+                  <span className="flex-shrink-0 bg-brand-primary text-white px-5 py-2 rounded-full font-medium hover:bg-brand-primary/90 transition-colors flex items-center gap-2">
+                    Register
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </span>
                 </div>
               </motion.a>
             ))}

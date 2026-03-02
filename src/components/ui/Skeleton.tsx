@@ -37,11 +37,12 @@ export function TableRowSkeleton({ cols = 4 }: { cols?: number }) {
 
 export function WebinarCardSkeleton() {
   return (
-    <div className="flex-shrink-0 w-72 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <Skeleton className="h-40 w-full rounded-none" />
-      <div className="p-4 space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-1/2" />
+    <div className="flex-shrink-0 w-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="relative h-[360px] w-full bg-gray-100 flex items-center justify-center">
+        <Skeleton className="w-3/4 h-3/4 rounded-lg" />
+      </div>
+      <div className="p-5 border-t border-gray-100 space-y-3">
+        <Skeleton className="h-5 w-3/4" />
       </div>
     </div>
   );
