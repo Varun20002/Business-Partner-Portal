@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -32,8 +32,29 @@ export default function ResourcesPage() {
     isOpen: boolean;
     material: MarketingMaterial | null;
   }>({ isOpen: false, material: null });
+  const [showPrompt, setShowPrompt] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to shareable-assets section when page loads with hash
+  useEffect(() => {
+    if (window.location.hash === "#shareable-assets") {
+      const element = document.getElementById("shareable-assets");
+      if (element) {
+        setTimeout(() => {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+          setShowPrompt(true);
+        }, 100);
+      }
+    }
+  }, []);
 
   const visibleWebinars = useMemo(
     () => webinars.slice(0, 12),
@@ -58,7 +79,7 @@ export default function ResourcesPage() {
   return (
     <div className="space-y-10 max-w-7xl mx-auto">
       {/* ─── Zone 1: This Week's Happenings (Webinars) ─── */}
-      <section id="shareable-assets">
+      <section>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">
@@ -142,7 +163,14 @@ export default function ResourcesPage() {
       </section>
 
       {/* ─── Zone 2: Shareable Assets (Marketing Materials) ─── */}
-      <section>
+      <section id="shareable-assets">
+        {showPrompt && (
+          <div className="mb-6 p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-xl">
+            <p className="text-sm font-medium text-gray-900">
+              Choose a promo creative below and share to start earning!
+            </p>
+          </div>
+        )}
         <div className="mb-6">
           <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-brand-accent" />
