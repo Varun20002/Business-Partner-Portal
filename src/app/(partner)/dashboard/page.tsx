@@ -370,8 +370,7 @@ export default function DashboardPage() {
                 />
                 <div className="mt-6 pt-5 border-t border-gray-100">
                   <p className="text-sm text-gray-500 font-body">
-                    Still have questions? Please reach out to your CoinDCX
-                    partner manager.
+                    Still have questions? Please reach out to your dedicated CoinDCX Key account manager.
                   </p>
                 </div>
               </div>
