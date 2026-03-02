@@ -205,11 +205,6 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-blue-200/40 text-xs mt-6 font-body">
-          {BRAND.terminologyFull} &mdash; {BRAND.name} Partner Portal
-        </p>
       </motion.div>
     </div>
   );
