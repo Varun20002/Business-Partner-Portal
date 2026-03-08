@@ -22,12 +22,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           id={id}
           ref={ref}
+          disabled={props.disabled}
           className={cn(
-            "w-full px-4 py-2.5 bg-white border rounded-xl text-gray-900 font-body placeholder:text-gray-400 transition-all duration-200",
+            "w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-body transition-all duration-200",
             "focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary",
             error
               ? "border-brand-alert focus:ring-brand-alert/20 focus:border-brand-alert"
               : "border-gray-200",
+            props.disabled && "bg-gray-100 cursor-not-allowed opacity-60",
             className
           )}
           {...props}
