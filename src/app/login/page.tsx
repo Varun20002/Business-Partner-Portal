@@ -74,9 +74,18 @@ export default function LoginPage() {
 
       if (profileError || !profile) {
         await supabase.auth.signOut();
-        setError(
-          "No profile found for this account. Please contact support."
-        );
+        // More specific error based on the error type
+        if (profileError) {
+          console.error("[Login] Profile fetch error:", profileError);
+          if (profileError.code === 'PGRST116') {
+            // PGRST116 = "Could not find row"
+            setError("Your account is not set up as a partner. Please contact your manager.");
+          } else {
+            setError("Unable to verify your account. Please try again or contact support.");
+          }
+        } else {
+          setError("Your partner profile was not found. Please contact your manager.");
+        }
         setIsLoading(false);
         return;
       }
