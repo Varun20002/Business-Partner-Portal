@@ -18,8 +18,8 @@ export function formatNumber(value: number): string {
 }
 
 export function generateRefLink(uid: string): string {
-  const digits = uid.replace(/\D/g, "");
-  return `https://invite.coindcx.com/${digits}`;
+  // Use the full UID (e.g., VA51243378) instead of just digits
+  return `https://invite.coindcx.com/${uid}`;
 }
 
 export function getRelativeTime(date: Date): string {
