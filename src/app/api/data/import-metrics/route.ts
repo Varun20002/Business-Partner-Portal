@@ -131,6 +131,8 @@ export async function POST(request: NextRequest) {
       typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : d;
     const normalizedMetrics: MetricsRow[] = metrics.map((m) => ({
       partner_uid: m.partner_uid.toUpperCase(),
+      name: m.name || "",
+      rsr_percentage: m.rsr_percentage ?? 20,
       total_users: toInt(m.total_users, 0),
       traded_users: toInt(m.traded_users, 0),
       eligible_500_users: toInt(m.eligible_500_users, 0),
@@ -176,6 +178,8 @@ export async function POST(request: NextRequest) {
         const { data: updated, error: updateError } = await supabase
           .from("partner_metrics")
           .update({
+            name: metric.name,
+            rsr_percentage: metric.rsr_percentage,
             total_users: metric.total_users,
             traded_users: metric.traded_users,
             eligible_500_users: metric.eligible_500_users,

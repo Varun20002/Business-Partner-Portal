@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 
 interface TopBarProps {
   uid?: string;
+  name?: string;
   onMenuToggle: () => void;
   className?: string;
 }
 
-export function TopBar({ uid, onMenuToggle, className }: TopBarProps) {
+export function TopBar({ uid, name, onMenuToggle, className }: TopBarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -57,9 +58,13 @@ export function TopBar({ uid, onMenuToggle, className }: TopBarProps) {
                 Refer now
               </button>
               <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full">
-                <span className="text-xs font-body text-gray-500">UID</span>
-                <span className="text-sm font-heading font-semibold text-brand-primary">
-                  {uid}
+                {name && (
+                  <span className="text-sm font-heading font-semibold text-brand-primary">
+                    {name}
+                  </span>
+                )}
+                <span className="text-xs font-body text-gray-500">
+                  {name ? `(${uid})` : uid}
                 </span>
               </div>
             </>

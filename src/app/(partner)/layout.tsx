@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { useAuth } from "@/hooks/useAuth";
+import { usePartnerMetrics } from "@/hooks/usePartnerMetrics";
 
 export default function PartnerLayout({
   children,
@@ -13,6 +14,9 @@ export default function PartnerLayout({
   const { profile, isLoading, logout, refreshProfile, error: authError } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+
+  // Fetch partner metrics to get name
+  const { data: metrics } = usePartnerMetrics(profile?.uid);
 
   const handleRetry = async () => {
     setIsRetrying(true);
@@ -98,6 +102,7 @@ export default function PartnerLayout({
       <div className="lg:ml-64">
         <TopBar
           uid={profile?.uid}
+          name={metrics?.name}
           onMenuToggle={() => setSidebarOpen(true)}
         />
         <main className="p-4 lg:p-8">{children}</main>

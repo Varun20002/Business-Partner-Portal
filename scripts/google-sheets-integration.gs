@@ -61,6 +61,8 @@ function importMetricsToSupabase() {
     // We still support a few flexible aliases for backwards compatibility.
     const colMap = {
       partner_uid: findColumnIndex(headers, ['Partner UID', 'PartnerUID', 'UID']),
+      name: findColumnIndex(headers, ['Name', 'Partner Name', 'PartnerName']),
+      rsr_percentage: findColumnIndex(headers, ['RSR Percentage', 'RSR%', 'Revenue Share Rate']),
       total_users: findColumnIndex(headers, ['Total Users', 'TotalUsers', 'Total', 'Users since Feb 1st']),
       traded_users: findColumnIndex(headers, ['Traded Users', 'TradedUsers', 'Traded', 'Who traded', 'Who Traded', 'Users who traded']),
       eligible_500_users: findColumnIndex(headers, ['Eligible 500 Users', 'Eligible500', 'Eligible 500']),
@@ -133,6 +135,8 @@ function importMetricsToSupabase() {
 
       const metric = {
         partner_uid: partnerUid,
+        name: colMap.name === -1 ? '' : String(rowData[colMap.name] || '').trim(),
+        rsr_percentage: colMap.rsr_percentage === -1 ? 20 : parseFloat(rowData[colMap.rsr_percentage]) || 20,
         total_users: totalUsers,
         traded_users: tradedUsers,
         eligible_500_users: eligible500Users,

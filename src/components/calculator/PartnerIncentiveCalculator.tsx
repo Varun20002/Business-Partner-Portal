@@ -93,14 +93,19 @@ function BreakdownCard({ title, value, color, icon, delay = 0 }: CardProps) {
 }
 
 // ─── Main Calculator ───────────────────────────────────────────
-export function PartnerIncentiveCalculator() {
+interface PartnerIncentiveCalculatorProps {
+  rsrPercentage?: number;
+}
+
+export function PartnerIncentiveCalculator({ rsrPercentage }: PartnerIncentiveCalculatorProps) {
   // State
   const [newUsers, setNewUsers] = useState(100);
   const [avgMargin, setAvgMargin] = useState(1000);
   const [leverage, setLeverage] = useState(25);
   const [tradesPerUser, setTradesPerUser] = useState(10);
 
-  const sharePercent = CALCULATOR.FIXED_REVENUE_SHARE;
+  // Use dynamic RSR from props, fallback to default 20%
+  const sharePercent = rsrPercentage ?? CALCULATOR.FIXED_REVENUE_SHARE;
 
   // Calculations
   const volPerUser = useMemo(
@@ -319,7 +324,7 @@ export function PartnerIncentiveCalculator() {
                   disabled
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-brand-primary bg-white shadow-sm border border-gray-200/50 font-heading"
                 >
-                  20%
+                  {sharePercent}%
                 </button>
               </div>
             </div>

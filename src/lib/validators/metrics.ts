@@ -10,6 +10,17 @@ export const MetricsRowSchema = z.object({
     .string()
     .min(1, "Partner UID is required")
     .regex(UID_REGEX, "UID must be 2 letters followed by numbers (e.g., VA51243378)"),
+  name: z
+    .string()
+    .max(255, "Name must be less than 255 characters")
+    .optional()
+    .default(""),
+  rsr_percentage: z
+    .number()
+    .min(0, "RSR percentage must be non-negative")
+    .max(100, "RSR percentage must be at most 100")
+    .optional()
+    .default(20),
   total_users: z.number().int().min(0, "Total users must be a non-negative integer"),
   traded_users: z.number().int().min(0, "Traded users must be a non-negative integer"),
   eligible_500_users: z

@@ -284,7 +284,7 @@ export default function DashboardPage() {
 
       {/* Calculator */}
       <div>
-        <LazyPartnerIncentiveCalculator />
+        <LazyPartnerIncentiveCalculator rsrPercentage={metrics?.rsr_percentage} />
       </div>
 
       {/* Refer Now CTA - Clean Horizontal Button */}

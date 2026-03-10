@@ -13,6 +13,8 @@ export interface Profile {
 export interface PartnerMetrics {
   id: string;
   partner_uid: string;
+  name?: string;
+  rsr_percentage?: number;
   total_users: number;
   traded_users: number;
   eligible_500_users: number;
@@ -77,6 +79,8 @@ export interface Database {
         Insert: {
           id?: string;
           partner_uid: string;
+          name?: string;
+          rsr_percentage?: number;
           total_users?: number;
           traded_users?: number;
           eligible_500_users?: number;
@@ -95,6 +99,8 @@ export interface Database {
         Update: {
           id?: string;
           partner_uid?: string;
+          name?: string;
+          rsr_percentage?: number;
           total_users?: number;
           traded_users?: number;
           eligible_500_users?: number;
