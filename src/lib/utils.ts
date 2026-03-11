@@ -18,8 +18,10 @@ export function formatNumber(value: number): string {
 }
 
 export function generateRefLink(uid: string): string {
-  // Use the full UID (e.g., VA51243378) instead of just digits
-  return `https://invite.coindcx.com/${uid}`;
+  // CoinDCX invite links should use only the numeric referral code.
+  const trimmed = uid.trim();
+  const numericCode = trimmed.replace(/^[A-Za-z]+/, "");
+  return `https://invite.coindcx.com/${numericCode || trimmed}`;
 }
 
 export function getRelativeTime(date: Date): string {

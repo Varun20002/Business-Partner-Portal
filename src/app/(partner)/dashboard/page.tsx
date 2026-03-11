@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import { Users, TrendingUp, BarChart3, Clock, Info, HelpCircle, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/Card";
@@ -12,22 +11,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { getRelativeTime, formatNumber } from "@/lib/utils";
 import { usePartnerMetrics } from "@/hooks/usePartnerMetrics";
 import { useFaqs } from "@/hooks/useFaqs";
+import { PartnerIncentiveCalculator } from "@/components/calculator/PartnerIncentiveCalculator";
 import Link from "next/link";
-
-const LazyPartnerIncentiveCalculator = dynamic(
-  () =>
-    import("@/components/calculator/PartnerIncentiveCalculator").then(
-      (m) => m.PartnerIncentiveCalculator
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="mt-4">
-        <div className="h-40 rounded-2xl bg-white border border-gray-100 shadow-sm animate-pulse" />
-      </div>
-    ),
-  }
-);
 
 interface BreakdownItemProps {
   label: string;
@@ -72,6 +57,7 @@ export default function DashboardPage() {
   const waitingForProfile = !uid && isAuthLoading;
   const hasNoData =
     uid && !isMetricsLoading && !hasMetrics && !isError;
+  const partnerDisplayName = metrics?.name?.trim() || profile?.uid;
 
   const { data: faqs = [], isLoading: isFaqsLoading } = useFaqs();
 
@@ -165,7 +151,7 @@ export default function DashboardPage() {
         className="space-y-1"
       >
         <h1 className="text-2xl lg:text-3xl font-heading font-bold text-gray-900">
-          Welcome back{profile?.uid ? `, ${profile.uid}` : ""}
+          Welcome back{partnerDisplayName ? `, ${partnerDisplayName}` : ""}
         </h1>
         {metrics?.updated_at && (
           <div className="flex items-center gap-1.5 text-sm text-gray-500 font-body">
@@ -284,7 +270,7 @@ export default function DashboardPage() {
 
       {/* Calculator */}
       <div>
-        <LazyPartnerIncentiveCalculator rsrPercentage={metrics?.rsr_percentage} />
+        <PartnerIncentiveCalculator rsrPercentage={metrics?.rsr_percentage} />
       </div>
 
       {/* Refer Now CTA - Clean Horizontal Button */}

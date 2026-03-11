@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +11,7 @@ export default function PartnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { profile, isLoading, logout, refreshProfile, error: authError } = useAuth();
+  const { user, profile, isLoading, logout, refreshProfile, error: authError } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
@@ -23,6 +23,36 @@ export default function PartnerLayout({
     await refreshProfile();
     setIsRetrying(false);
   };
+
+  useEffect(() => {
+    if (isLoading || !user || profile) {
+      return;
+    }
+
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const retry = async () => {
+      if (cancelled) return;
+      await refreshProfile();
+      if (!cancelled) {
+        timeoutId = setTimeout(() => {
+          void retry();
+        }, 3000);
+      }
+    };
+
+    timeoutId = setTimeout(() => {
+      void retry();
+    }, 1500);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isLoading, user, profile, refreshProfile]);
 
   // Show loading state while auth is checking
   if (isLoading) {
@@ -36,24 +66,22 @@ export default function PartnerLayout({
     );
   }
 
-  // If no profile after loading, show error with retry option
+  // If session exists but profile is temporarily unavailable, keep user in reconnecting state.
   if (!profile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+          <div className="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-7 h-7 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
           </div>
           <h2 className="text-xl font-heading font-semibold text-gray-900 mb-2">
-            Unable to Load Profile
+            Restoring Your Session
           </h2>
           <p className="text-gray-500 mb-2">
-            {authError || "We could not load your profile information. This might be a temporary connection issue."}
+            {authError || "We are reconnecting to your profile in the background."}
           </p>
           <p className="text-gray-400 text-sm mb-6">
-            Please try again. If the problem persists, contact your manager.
+            You will be taken back automatically as soon as the connection recovers.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -74,15 +102,6 @@ export default function PartnerLayout({
                   Try Again
                 </>
               )}
-            </button>
-            <button
-              onClick={logout}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
             </button>
           </div>
         </div>
