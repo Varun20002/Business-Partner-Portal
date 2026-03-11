@@ -4,23 +4,25 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { BRAND } from "@/lib/constants";
-import { createClient } from "@/lib/supabase/client";
 import { LoginAnimation } from "@/components/ui/LoginAnimation";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
-  // Login fields
+  // Signup fields
   const [uid, setUid] = useState("");
   const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,89 +30,127 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      // Client-side validation
       if (!uid.trim()) {
         setError("UID is required");
         setIsLoading(false);
         return;
       }
+
+      if (!/^[A-Z]{2}\d+$/i.test(uid)) {
+        setError("Invalid UID format. Must be 2 letters followed by numbers (e.g., VA51243378)");
+        setIsLoading(false);
+        return;
+      }
+
       if (!/^\d{4}$/.test(pin)) {
         setError("PIN must be exactly 4 digits");
         setIsLoading(false);
         return;
       }
 
-      const supabase = createClient();
-      await supabase.auth.signOut();
-
-      const email = `${uid.trim().toLowerCase()}@partner.coindcx.internal`;
-
-      const { data: authData, error: authError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password: pin,
-        });
-
-      if (authError) {
-        console.error("[Login] Auth error:", authError.message);
-        setError(
-          authError.message === "Invalid login credentials"
-            ? "Invalid UID or PIN"
-            : authError.message
-        );
+      if (pin !== confirmPin) {
+        setError("PINs do not match");
         setIsLoading(false);
         return;
       }
 
-      if (!authData?.user) {
-        setError("Authentication failed. No user data returned.");
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: uid.trim().toUpperCase(),
+          pin,
+          confirmPin,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("[Signup] API error:", data.error);
+        setError(data.error || "Failed to create account");
         setIsLoading(false);
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", authData.user.id)
-        .single();
+      // Show success state
+      setSuccess(true);
+      setIsLoading(false);
 
-      if (profileError || !profile) {
-        await supabase.auth.signOut();
-        // More specific error based on the error type
-        if (profileError) {
-          console.error("[Login] Profile fetch error:", profileError);
-          if (profileError.code === 'PGRST116') {
-            // PGRST116 = "Could not find row"
-            setError("Your account is not set up as a partner. Please contact your manager.");
-          } else {
-            setError("Unable to verify your account. Please try again or contact support.");
-          }
-        } else {
-          setError("Your partner profile was not found. Please contact your manager.");
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      if (profile.role === "admin") {
-        router.push("/admin");
-        router.refresh();
-      } else if (profile.role === "partner") {
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        await supabase.auth.signOut();
-        setError(
-          `Access denied. Unknown role: "${profile.role}". Please contact support.`
-        );
-        setIsLoading(false);
-      }
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (err) {
-      console.error("[Login] Unexpected error:", err);
+      console.error("[Signup] Unexpected error:", err);
       setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // If signup was successful, show success message
+  if (success) {
+    return (
+      <div className="h-screen flex overflow-hidden">
+        {/* Left Side - Animated Characters */}
+        <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-center items-center bg-[#0028cc] p-8">
+          <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
+          <div className="absolute top-1/4 right-1/4 size-64 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 left-1/4 size-96 bg-white/5 rounded-full blur-3xl" />
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="z-10 flex flex-col items-center"
+          >
+            <CheckCircle className="w-24 h-24 text-green-400 mb-6" />
+            <h2 className="text-3xl font-heading font-bold text-white text-center">
+              Account Created!
+            </h2>
+            <p className="text-white/70 mt-2 text-center">
+              Redirecting to login...
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Right Side - Success Message */}
+        <div className="flex-1 flex items-center justify-center p-6 sm:p-8 bg-[#0028cc]">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 right-1/4 size-96 bg-white/5 rounded-full blur-3xl" />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative z-10 w-full max-w-md"
+          >
+            <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">
+                Success!
+              </h2>
+              <p className="text-gray-600 font-body">
+                Your account has been created. You can now log in with your UID and PIN.
+              </p>
+              <p className="text-sm text-gray-400 mt-4">
+                Redirecting to login...
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -136,7 +176,7 @@ export default function LoginPage() {
         <div className="absolute bottom-1/4 left-1/4 size-96 bg-white/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Signup Form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-8 bg-[#0028cc]">
         {/* Background decorations */}
         <div className="absolute inset-0 overflow-hidden">
@@ -151,7 +191,7 @@ export default function LoginPage() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="relative z-10 w-full max-w-md"
         >
-          {/* Login Card - White */}
+          {/* Signup Card - White */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -163,6 +203,9 @@ export default function LoginPage() {
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">
                 {BRAND.name}
               </h1>
+              <p className="text-sm text-gray-500 mt-1 font-body">
+                Set up your PIN
+              </p>
             </div>
 
             {/* Form */}
@@ -183,8 +226,14 @@ export default function LoginPage() {
                   onFocus={() => setIsTyping(true)}
                   onBlur={() => setIsTyping(false)}
                   disabled={isLoading}
-                  error={uid.length > 0 && uid.length < 5 ? "UID should be at least 5 characters" : undefined}
+                  error={
+                    uid.length > 0 && !/^[A-Z]{2}\d+$/i.test(uid)
+                      ? "Invalid UID format"
+                      : undefined
+                  }
                 />
+                
+                {/* PIN Input */}
                 <div className="relative">
                   <Input
                     id="pin"
@@ -200,11 +249,15 @@ export default function LoginPage() {
                     }}
                     maxLength={4}
                     inputMode="numeric"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     onFocus={() => setIsTyping(true)}
                     onBlur={() => setIsTyping(false)}
                     disabled={isLoading}
-                    error={pin.length > 0 && pin.length < 4 ? "PIN must be exactly 4 digits" : undefined}
+                    error={
+                      pin.length > 0 && pin.length < 4
+                        ? "PIN must be exactly 4 digits"
+                        : undefined
+                    }
                   />
                   <button
                     type="button"
@@ -214,6 +267,49 @@ export default function LoginPage() {
                     disabled={isLoading}
                   >
                     {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Confirm PIN Input */}
+                <div className="relative">
+                  <Input
+                    id="confirmPin"
+                    label="Confirm PIN"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••"
+                    value={confirmPin}
+                    onChange={(e) => {
+                      const val = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 4);
+                      setConfirmPin(val);
+                    }}
+                    maxLength={4}
+                    inputMode="numeric"
+                    autoComplete="new-password"
+                    onFocus={() => setIsTyping(true)}
+                    onBlur={() => setIsTyping(false)}
+                    disabled={isLoading}
+                    error={
+                      confirmPin.length > 0 && confirmPin !== pin
+                        ? "PINs do not match"
+                        : confirmPin.length > 0 && confirmPin.length < 4
+                        ? "Must be 4 digits"
+                        : undefined
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                    tabIndex={-1}
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? (
                       <EyeOff className="w-4 h-4" />
                     ) : (
                       <Eye className="w-4 h-4" />
@@ -243,19 +339,19 @@ export default function LoginPage() {
                 className="w-full gap-2"
                 size="lg"
               >
-                Login
+                Create Account
                 <ArrowRight className="w-4 h-4" />
               </Button>
 
-              {/* Signup Link */}
+              {/* Login Link */}
               <div className="text-center pt-2">
                 <p className="text-sm text-gray-600 font-body">
-                  First time?{" "}
+                  Already have an account?{" "}
                   <Link
-                    href="/signup"
+                    href="/login"
                     className="text-brand-primary font-semibold hover:underline"
                   >
-                    Set up your PIN
+                    Login
                   </Link>
                 </p>
               </div>
