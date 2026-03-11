@@ -9,6 +9,7 @@ interface AuthState {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  error: string | null;
 }
 
 export function useAuth() {
@@ -16,6 +17,7 @@ export function useAuth() {
     user: null,
     profile: null,
     isLoading: true,
+    error: null,
   });
 
   useEffect(() => {
@@ -48,19 +50,22 @@ export function useAuth() {
                 user: session.user,
                 profile: profile as Profile,
                 isLoading: false,
+                error: null,
               });
             } else {
               setAuthState({
                 user: session.user,
                 profile: null,
                 isLoading: false,
+                error: profileError?.message || "Profile not found",
               });
             }
-          } catch {
+          } catch (err) {
             setAuthState({
               user: session.user,
               profile: null,
               isLoading: false,
+              error: err instanceof Error ? err.message : "Failed to load profile",
             });
           }
         }
@@ -70,11 +75,30 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const refreshProfile = async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, uid, role")
+        .eq("id", session.user.id)
+        .single();
+
+      setAuthState({
+        user: session.user,
+        profile: profileError ? null : (profile as Profile),
+        isLoading: false,
+        error: profileError ? profileError.message : null,
+      });
+    }
+  };
+
   const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
 
-  return { ...authState, logout };
+  return { ...authState, logout, refreshProfile };
 }
