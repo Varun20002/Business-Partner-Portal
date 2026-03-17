@@ -57,13 +57,13 @@ export function Modal({ isOpen, onClose, title, children, className, size = "md"
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              "w-full bg-white rounded-2xl shadow-xl overflow-hidden",
+              "w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]",
               sizes[size],
               className
             )}
           >
             {title && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
                 <h2 className="text-lg font-heading font-semibold text-gray-900">{title}</h2>
                 <button
                   onClick={onClose}
@@ -73,7 +73,7 @@ export function Modal({ isOpen, onClose, title, children, className, size = "md"
                 </button>
               </div>
             )}
-            <div className="p-6">{children}</div>
+            <div className="p-6 overflow-y-auto max-h-[calc(100vh-10rem)]">{children}</div>
           </motion.div>
         </motion.div>
       )}
