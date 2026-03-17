@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { validateMetricsImport, type MetricsRow } from "@/lib/validators/metrics";
+import type { Database } from "@/types/database";
 
 // ─── Rate Limiting (Optional) ──────────────────────────────────────
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    const supabase = createClient<Database>(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
@@ -148,99 +149,27 @@ export async function POST(request: NextRequest) {
       next_slab_incentive_inr: toInt(m.next_slab_incentive_inr, 0),
     }));
 
-    const results: any[] = [];
+    // Single batched upsert — relies on the UNIQUE constraint on partner_uid
+    // (added in migration 003). Replaces the previous N+1 SELECT+INSERT/UPDATE loop.
+    const now = new Date().toISOString();
+    const { data: results, error: upsertError } = await supabase
+      .from("partner_metrics")
+      .upsert(
+        normalizedMetrics.map((m) => ({ ...m, updated_at: now })),
+        { onConflict: "partner_uid" }
+      )
+      .select();
 
-    for (const metric of normalizedMetrics) {
-      // Check if a record already exists for this partner_uid
-      const { data: existing, error: existingError } = await supabase
-        .from("partner_metrics")
-        .select("id")
-        .eq("partner_uid", metric.partner_uid)
-        .maybeSingle();
-
-      if (existingError) {
-        console.error(
-          `[Import Metrics] Error checking existing metric for ${metric.partner_uid}:`,
-          existingError
-        );
-        return NextResponse.json(
-          {
-            error: "Failed to import metrics",
-            details: existingError.message,
-            code: existingError.code,
-          },
-          { status: 500 }
-        );
-      }
-
-      if (existing) {
-        // Update existing row
-        const { data: updated, error: updateError } = await supabase
-          .from("partner_metrics")
-          .update({
-            name: metric.name,
-            rsr_percentage: metric.rsr_percentage,
-            total_users: metric.total_users,
-            traded_users: metric.traded_users,
-            eligible_500_users: metric.eligible_500_users,
-            volume_eligible_users: metric.volume_eligible_users,
-            total_volume_inr: metric.total_volume_inr ?? 0,
-            new_users: metric.new_users ?? 0,
-            crossed_threshold_users: metric.crossed_threshold_users ?? 0,
-            new_user_incentive_inr: metric.new_user_incentive_inr ?? 0,
-            current_baseline_volume_inr:
-              metric.current_baseline_volume_inr ?? 0,
-            incremental_volume_inr: metric.incremental_volume_inr ?? 0,
-            volume_incentive_inr: metric.volume_incentive_inr ?? 0,
-            volume_to_next_slab_inr: metric.volume_to_next_slab_inr ?? 0,
-            next_slab_incentive_inr: metric.next_slab_incentive_inr ?? 0,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("partner_uid", metric.partner_uid)
-          .select()
-          .single();
-
-        if (updateError) {
-          console.error(
-            `[Import Metrics] Update error for ${metric.partner_uid}:`,
-            updateError
-          );
-          return NextResponse.json(
-            {
-              error: "Failed to import metrics",
-              details: updateError.message,
-              code: updateError.code,
-            },
-            { status: 500 }
-          );
-        }
-
-        results.push(updated);
-      } else {
-        // Insert new row
-        const { data: inserted, error: insertError } = await supabase
-          .from("partner_metrics")
-          .insert(metric)
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error(
-            `[Import Metrics] Insert error for ${metric.partner_uid}:`,
-            insertError
-          );
-          return NextResponse.json(
-            {
-              error: "Failed to import metrics",
-              details: insertError.message,
-              code: insertError.code,
-            },
-            { status: 500 }
-          );
-        }
-
-        results.push(inserted);
-      }
+    if (upsertError) {
+      console.error("[Import Metrics] Upsert error:", upsertError);
+      return NextResponse.json(
+        {
+          error: "Failed to import metrics",
+          details: upsertError.message,
+          code: upsertError.code,
+        },
+        { status: 500 }
+      );
     }
 
     // 7. Return success response
