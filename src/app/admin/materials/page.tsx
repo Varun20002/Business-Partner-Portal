@@ -82,13 +82,16 @@ export default function AdminMaterialsPage() {
     setIsSubmitting(true);
     const supabase = createClient();
 
+    const payload = {
+      title: formData.title,
+      image_url: formData.image_url,
+      share_text_template: formData.share_text_template,
+    };
+
     if (editingId) {
-      await supabase
-        .from("marketing_materials")
-        .update(formData)
-        .eq("id", editingId);
+      await supabase.from("marketing_materials").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("marketing_materials").insert(formData);
+      await supabase.from("marketing_materials").insert(payload);
     }
 
     setModalOpen(false);

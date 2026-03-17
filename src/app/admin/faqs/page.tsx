@@ -84,10 +84,16 @@ export default function AdminFAQsPage() {
     setIsSubmitting(true);
     const supabase = createClient();
 
+    const payload = {
+      question: formData.question,
+      answer: formData.answer,
+      display_order: formData.display_order,
+    };
+
     if (editingId) {
-      await supabase.from("faqs").update(formData).eq("id", editingId);
+      await supabase.from("faqs").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("faqs").insert(formData);
+      await supabase.from("faqs").insert(payload);
     }
 
     setModalOpen(false);
@@ -115,11 +121,11 @@ export default function AdminFAQsPage() {
     await Promise.all([
       supabase
         .from("faqs")
-        .update({ display_order: faqs[swapIdx].display_order })
+        .update({ display_order: faqs[swapIdx].display_order } as { display_order: number })
         .eq("id", faqs[idx].id),
       supabase
         .from("faqs")
-        .update({ display_order: faqs[idx].display_order })
+        .update({ display_order: faqs[idx].display_order } as { display_order: number })
         .eq("id", faqs[swapIdx].id),
     ]);
 

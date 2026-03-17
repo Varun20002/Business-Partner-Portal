@@ -80,13 +80,16 @@ export default function AdminWebinarsPage() {
     setIsSubmitting(true);
     const supabase = createClient();
 
+    const payload = {
+      title: formData.title,
+      poster_url: formData.poster_url,
+      external_link: formData.external_link,
+    };
+
     if (editingId) {
-      await supabase
-        .from("webinars")
-        .update(formData)
-        .eq("id", editingId);
+      await supabase.from("webinars").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("webinars").insert(formData);
+      await supabase.from("webinars").insert(payload);
     }
 
     setModalOpen(false);
