@@ -14,7 +14,7 @@ import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TableRowSkeleton } from "@/components/ui/Skeleton";
 import { ImageUpload } from "@/components/admin/ImageUpload";
-import type { Webinar } from "@/types/database";
+import type { Webinar, Database } from "@/types/database";
 
 const webinarSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
@@ -80,7 +80,7 @@ export default function AdminWebinarsPage() {
     setIsSubmitting(true);
     const supabase = createClient();
 
-    const payload = {
+    const payload: Database["public"]["Tables"]["webinars"]["Update"] = {
       title: formData.title,
       poster_url: formData.poster_url,
       external_link: formData.external_link,
@@ -89,7 +89,7 @@ export default function AdminWebinarsPage() {
     if (editingId) {
       await supabase.from("webinars").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("webinars").insert(payload);
+      await supabase.from("webinars").insert(payload as Database["public"]["Tables"]["webinars"]["Insert"]);
     }
 
     setModalOpen(false);

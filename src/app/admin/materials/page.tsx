@@ -15,7 +15,7 @@ import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TableRowSkeleton } from "@/components/ui/Skeleton";
 import { ImageUpload } from "@/components/admin/ImageUpload";
-import type { MarketingMaterial } from "@/types/database";
+import type { MarketingMaterial, Database } from "@/types/database";
 
 const materialSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
@@ -82,7 +82,7 @@ export default function AdminMaterialsPage() {
     setIsSubmitting(true);
     const supabase = createClient();
 
-    const payload = {
+    const payload: Database["public"]["Tables"]["marketing_materials"]["Update"] = {
       title: formData.title,
       image_url: formData.image_url,
       share_text_template: formData.share_text_template,
@@ -91,7 +91,7 @@ export default function AdminMaterialsPage() {
     if (editingId) {
       await supabase.from("marketing_materials").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("marketing_materials").insert(payload);
+      await supabase.from("marketing_materials").insert(payload as Database["public"]["Tables"]["marketing_materials"]["Insert"]);
     }
 
     setModalOpen(false);

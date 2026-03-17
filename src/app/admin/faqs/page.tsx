@@ -21,7 +21,7 @@ import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TableRowSkeleton } from "@/components/ui/Skeleton";
-import type { FAQ } from "@/types/database";
+import type { FAQ, Database } from "@/types/database";
 
 const faqSchema = z.object({
   question: z.string().min(1, "Question is required"),
@@ -84,7 +84,7 @@ export default function AdminFAQsPage() {
     setIsSubmitting(true);
     const supabase = createClient();
 
-    const payload = {
+    const payload: Database["public"]["Tables"]["faqs"]["Update"] = {
       question: formData.question,
       answer: formData.answer,
       display_order: formData.display_order,
@@ -93,7 +93,7 @@ export default function AdminFAQsPage() {
     if (editingId) {
       await supabase.from("faqs").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("faqs").insert(payload);
+      await supabase.from("faqs").insert(payload as Database["public"]["Tables"]["faqs"]["Insert"]);
     }
 
     setModalOpen(false);
@@ -118,15 +118,11 @@ export default function AdminFAQsPage() {
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
     const supabase = createClient();
 
+    const updateA: Database["public"]["Tables"]["faqs"]["Update"] = { display_order: faqs[swapIdx].display_order };
+    const updateB: Database["public"]["Tables"]["faqs"]["Update"] = { display_order: faqs[idx].display_order };
     await Promise.all([
-      supabase
-        .from("faqs")
-        .update({ display_order: faqs[swapIdx].display_order } as { display_order: number })
-        .eq("id", faqs[idx].id),
-      supabase
-        .from("faqs")
-        .update({ display_order: faqs[idx].display_order } as { display_order: number })
-        .eq("id", faqs[swapIdx].id),
+      supabase.from("faqs").update(updateA).eq("id", faqs[idx].id),
+      supabase.from("faqs").update(updateB).eq("id", faqs[swapIdx].id),
     ]);
 
     fetchFAQs();
