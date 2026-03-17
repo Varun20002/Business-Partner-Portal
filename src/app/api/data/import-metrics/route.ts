@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { validateMetricsImport, type MetricsRow } from "@/lib/validators/metrics";
-import type { Database } from "@/types/database";
+
 
 // ─── Rate Limiting (Optional) ──────────────────────────────────────
 const attempts = new Map<string, { count: number; resetAt: number }>();
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient<Database>(supabaseUrl, serviceRoleKey, {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
