@@ -91,9 +91,9 @@ export default function AdminFAQsPage() {
     };
 
     if (editingId) {
-      await supabase.from("faqs").update(payload as any).eq("id", editingId);
+      await supabase.from("faqs").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("faqs").insert(payload as any);
+      await supabase.from("faqs").insert(payload);
     }
 
     setModalOpen(false);
@@ -119,8 +119,8 @@ export default function AdminFAQsPage() {
     const supabase = createClient();
 
     await Promise.all([
-      supabase.from("faqs").update({ display_order: faqs[swapIdx].display_order } as any).eq("id", faqs[idx].id),
-      supabase.from("faqs").update({ display_order: faqs[idx].display_order } as any).eq("id", faqs[swapIdx].id),
+      supabase.from("faqs").update({ display_order: faqs[swapIdx].display_order }).eq("id", faqs[idx].id),
+      supabase.from("faqs").update({ display_order: faqs[idx].display_order }).eq("id", faqs[swapIdx].id),
     ]);
 
     fetchFAQs();

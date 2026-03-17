@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
     const { data: results, error: upsertError } = await supabase
       .from("partner_metrics")
       .upsert(
-        normalizedMetrics.map((m) => ({ ...m, updated_at: now })) as any,
+        normalizedMetrics.map((m) => ({ ...m, updated_at: now })),
         { onConflict: "partner_uid" }
       )
       .select();

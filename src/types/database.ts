@@ -76,6 +76,7 @@ export interface Database {
           created_at?: string;
           seen_dashboard?: boolean;
         };
+        Relationships: [];
       };
       partner_metrics: {
         Row: PartnerMetrics;
@@ -119,6 +120,7 @@ export interface Database {
           next_slab_incentive_inr?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       webinars: {
         Row: Webinar;
@@ -136,6 +138,7 @@ export interface Database {
           external_link?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       marketing_materials: {
         Row: MarketingMaterial;
@@ -153,6 +156,7 @@ export interface Database {
           share_text_template?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       faqs: {
         Row: FAQ;
@@ -170,6 +174,7 @@ export interface Database {
           display_order?: number;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

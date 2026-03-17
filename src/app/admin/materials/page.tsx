@@ -89,9 +89,9 @@ export default function AdminMaterialsPage() {
     };
 
     if (editingId) {
-      await supabase.from("marketing_materials").update(payload as any).eq("id", editingId);
+      await supabase.from("marketing_materials").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("marketing_materials").insert(payload as any);
+      await supabase.from("marketing_materials").insert(payload);
     }
 
     setModalOpen(false);

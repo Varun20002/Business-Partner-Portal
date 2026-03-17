@@ -15,7 +15,7 @@ export async function POST() {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ seen_dashboard: true } as any)
+    .update({ seen_dashboard: true })
     .eq("id", user.id);
 
   if (error) {

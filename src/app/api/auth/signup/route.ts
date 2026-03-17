@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     // We need to update the id to match the new auth user's id
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ id: newUser.user.id } as any)
+      .update({ id: newUser.user.id })
       .eq("uid", normalizedUid);
 
     if (updateError) {

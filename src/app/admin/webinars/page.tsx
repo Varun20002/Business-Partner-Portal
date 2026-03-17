@@ -87,9 +87,9 @@ export default function AdminWebinarsPage() {
     };
 
     if (editingId) {
-      await supabase.from("webinars").update(payload as any).eq("id", editingId);
+      await supabase.from("webinars").update(payload).eq("id", editingId);
     } else {
-      await supabase.from("webinars").insert(payload as any);
+      await supabase.from("webinars").insert(payload);
     }
 
     setModalOpen(false);
