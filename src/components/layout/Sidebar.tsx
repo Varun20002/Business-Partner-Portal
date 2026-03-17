@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   BookOpen,
@@ -13,12 +13,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PARTNER_NAV, BRAND } from "@/lib/constants";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
   BookOpen,
   HelpCircle,
 };
+
+const RESOURCES_HREF = "/dashboard/resources";
+const SEEN_LOCAL_KEY = "bp_seen_dashboard_v1";
 
 interface SidebarProps {
   isMobileOpen: boolean;
@@ -29,6 +34,33 @@ interface SidebarProps {
 export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { profile, markDashboardSeen } = useAuth();
+
+  // Determine whether to show the "New" badge.
+  // Show when: localStorage flag is not set AND server flag is not true.
+  // Initialise to false to avoid SSR mismatch; set on mount (client only).
+  const [showBadge, setShowBadge] = useState(false);
+
+  useEffect(() => {
+    const seenLocal = localStorage.getItem(SEEN_LOCAL_KEY) === "1";
+    // profile?.seen_dashboard will be true once migration 012 is applied and
+    // the user has been marked seen. Until then, localStorage is the sole source.
+    const seenServer = profile?.seen_dashboard === true;
+    setShowBadge(!seenLocal && !seenServer);
+  }, [profile?.seen_dashboard, profile?.id]);
+
+  const handleResourcesClick = () => {
+    if (showBadge) {
+      setShowBadge(false);
+      localStorage.setItem(SEEN_LOCAL_KEY, "1");
+    }
+    // Always persist to DB if not yet marked — covers cases where badge was
+    // already hidden via localStorage but DB still shows false.
+    if (profile && !profile.seen_dashboard) {
+      void markDashboardSeen();
+    }
+    onMobileClose();
+  };
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -78,6 +110,7 @@ export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps)
           {PARTNER_NAV.map((item) => {
             const Icon = iconMap[item.icon];
             const active = isActive(item.href);
+            const isResources = item.href === RESOURCES_HREF;
 
             return (
               <Link
@@ -85,7 +118,7 @@ export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps)
                 href={item.href}
                 onMouseEnter={() => router.prefetch(item.href)}
                 onFocus={() => router.prefetch(item.href)}
-                onClick={onMobileClose}
+                onClick={isResources ? handleResourcesClick : onMobileClose}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden",
                   active
@@ -102,6 +135,23 @@ export function Sidebar({ isMobileOpen, onMobileClose, onLogout }: SidebarProps)
                 )}
                 {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
                 <span className="font-body">{item.label}</span>
+
+                {/* "New" badge — only for Resources, only for first-time visitors */}
+                {isResources && (
+                  <AnimatePresence>
+                    {showBadge && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.7 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.7 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-brand-primary text-white"
+                      >
+                        NEW
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                )}
               </Link>
             );
           })}

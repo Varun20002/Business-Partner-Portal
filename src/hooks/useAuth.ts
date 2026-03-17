@@ -29,6 +29,7 @@ function parseCachedProfile(raw: string | null): Profile | null {
         role: parsed.role,
         created_at:
           typeof parsed.created_at === "string" ? parsed.created_at : new Date(0).toISOString(),
+        seen_dashboard: parsed.seen_dashboard === true,
       };
     }
     return null;
@@ -51,7 +52,7 @@ export function useAuth() {
     const fetchProfile = async (user: User) => {
       const profilePromise = supabase
         .from("profiles")
-        .select("id, uid, role, created_at")
+        .select("id, uid, role, created_at, seen_dashboard")
         .eq("id", user.id)
         .single();
 
@@ -159,7 +160,7 @@ export function useAuth() {
     if (session?.user) {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("id, uid, role, created_at")
+        .select("id, uid, role, created_at, seen_dashboard")
         .eq("id", session.user.id)
         .single();
 
@@ -196,6 +197,33 @@ export function useAuth() {
     }
   };
 
+  const markDashboardSeen = async () => {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    setAuthState((prev) => {
+      if (!prev.profile) return prev;
+      const updated = { ...prev.profile, seen_dashboard: true };
+      localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(updated));
+      return { ...prev, profile: updated };
+    });
+
+    // Silently attempt DB update — will succeed once migration 012 is applied.
+    // Failure here is non-fatal; localStorage already hides the badge.
+    await supabase
+      .from("profiles")
+      .update({ seen_dashboard: true })
+      .eq("id", session.user.id)
+      .then(({ error }) => {
+        if (error) {
+          // Column may not exist yet; badge is already hidden via localStorage.
+        }
+      });
+  };
+
   const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -203,5 +231,5 @@ export function useAuth() {
     window.location.href = "/login";
   };
 
-  return { ...authState, logout, refreshProfile };
+  return { ...authState, logout, refreshProfile, markDashboardSeen };
 }
