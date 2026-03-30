@@ -43,6 +43,7 @@ function parseCachedProfile(raw: string | null): Profile | null {
             ? parsed.created_at
             : new Date(0).toISOString(),
         seen_dashboard: parsed.seen_dashboard === true,
+        signed_up_at: typeof parsed.signed_up_at === "string" ? parsed.signed_up_at : null,
       };
     }
     return null;
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchProfile = async (user: User) => {
       const profilePromise = supabase
         .from("profiles")
-        .select("id, uid, role, created_at, seen_dashboard")
+        .select("id, uid, role, created_at, seen_dashboard, signed_up_at")
         .eq("id", user.id)
         .single();
 
@@ -181,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (session?.user) {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("id, uid, role, created_at, seen_dashboard")
+        .select("id, uid, role, created_at, seen_dashboard, signed_up_at")
         .eq("id", session.user.id)
         .single();
 

@@ -9,6 +9,7 @@ export interface Profile {
   role: UserRole;
   created_at: string;
   seen_dashboard?: boolean;
+  signed_up_at?: string | null;
 }
 
 export interface PartnerMetrics {
@@ -68,6 +69,7 @@ export interface Database {
           role?: UserRole;
           created_at?: string;
           seen_dashboard?: boolean;
+          signed_up_at?: string | null;
         };
         Update: {
           id?: string;
@@ -75,6 +77,7 @@ export interface Database {
           role?: UserRole;
           created_at?: string;
           seen_dashboard?: boolean;
+          signed_up_at?: string | null;
         };
         Relationships: [];
       };

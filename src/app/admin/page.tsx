@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Video, ImageIcon, HelpCircle, Users } from "lucide-react";
+import { Video, ImageIcon, HelpCircle, Users, UserCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/Card";
 import { MetricCardSkeleton } from "@/components/ui/Skeleton";
@@ -23,11 +23,12 @@ export default function AdminOverviewPage() {
     async function fetchStats() {
       const supabase = createClient();
 
-      const [webinars, materials, faqs, partners] = await Promise.all([
+      const [webinars, materials, faqs, partners, signedUp] = await Promise.all([
         supabase.from("webinars").select("id", { count: "exact", head: true }),
         supabase.from("marketing_materials").select("id", { count: "exact", head: true }),
         supabase.from("faqs").select("id", { count: "exact", head: true }),
         supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "partner"),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "partner").not("signed_up_at", "is", null),
       ]);
 
       setStats([
@@ -36,6 +37,13 @@ export default function AdminOverviewPage() {
           value: partners.count || 0,
           icon: <Users className="w-5 h-5 text-blue-600" />,
           color: "bg-blue-50",
+          href: "/admin",
+        },
+        {
+          label: "Signed Up",
+          value: signedUp.count || 0,
+          icon: <UserCheck className="w-5 h-5 text-teal-600" />,
+          color: "bg-teal-50",
           href: "/admin",
         },
         {
@@ -78,13 +86,13 @@ export default function AdminOverviewPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
             <MetricCardSkeleton key={i} />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}

@@ -150,9 +150,10 @@ export async function POST(request: NextRequest) {
 
     // 4. Update profile to link with the new auth user
     // We need to update the id to match the new auth user's id
+    const payload = { id: newUser.user.id, signed_up_at: new Date().toISOString() };
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ id: newUser.user.id })
+      .update(payload)
       .eq("uid", normalizedUid);
 
     if (updateError) {
